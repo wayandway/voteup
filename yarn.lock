@@ -485,7 +485,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@next/eslint-plugin-next@npm:15.5.3":
+"@next/eslint-plugin-next@npm:15.5.3, @next/eslint-plugin-next@npm:^15.5.3":
   version: 15.5.3
   resolution: "@next/eslint-plugin-next@npm:15.5.3"
   dependencies:
@@ -2608,7 +2608,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-react-hooks@npm:^5.0.0":
+"eslint-plugin-react-hooks@npm:^5.0.0, eslint-plugin-react-hooks@npm:^5.2.0":
   version: 5.2.0
   resolution: "eslint-plugin-react-hooks@npm:5.2.0"
   peerDependencies:
@@ -5058,6 +5058,7 @@ __metadata:
   dependencies:
     "@eslint/eslintrc": "npm:^3"
     "@hookform/resolvers": "npm:^5.2.2"
+    "@next/eslint-plugin-next": "npm:^15.5.3"
     "@radix-ui/react-dialog": "npm:^1.1.15"
     "@radix-ui/react-dropdown-menu": "npm:^2.1.16"
     "@radix-ui/react-label": "npm:^2.1.7"
@@ -5076,6 +5077,7 @@ __metadata:
     clsx: "npm:^2.1.1"
     eslint: "npm:^9"
     eslint-config-next: "npm:15.5.3"
+    eslint-plugin-react-hooks: "npm:^5.2.0"
     framer-motion: "npm:^12.23.15"
     lucide-react: "npm:^0.544.0"
     next: "npm:15.5.3"

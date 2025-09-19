@@ -85,7 +85,7 @@ export default function CreatePollPage() {
 
     try {
       // 투표 생성
-      const { data: pollData, error: pollError } = await supabase
+      const { data: pollData, error: pollError } = await (supabase as any)
         .from("polls")
         .insert({
           host_id: user.id,
@@ -108,7 +108,7 @@ export default function CreatePollPage() {
         count: 0,
       }));
 
-      const { error: optionsError } = await supabase
+      const { error: optionsError } = await (supabase as any)
         .from("options")
         .insert(optionsData);
 

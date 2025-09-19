@@ -119,14 +119,17 @@ export default function VotePage() {
 
     setVoting(true);
     const participantToken = generateParticipantToken();
+    const supabase = createClient();
 
     try {
       // 투표 기록 추가
-      const { error: responseError } = await supabase.from("responses").insert({
-        poll_id: pollId,
-        option_id: optionId,
-        participant_token: participantToken,
-      });
+      const { error: responseError } = await (supabase as any)
+        .from("responses")
+        .insert({
+          poll_id: pollId,
+          option_id: optionId,
+          participant_token: participantToken,
+        });
 
       if (responseError) {
         toast.error("투표 실패: " + responseError.message);
@@ -138,7 +141,7 @@ export default function VotePage() {
         (opt) => opt.id === optionId
       );
       if (selectedOptionData) {
-        const { error: updateError } = await supabase
+        const { error: updateError } = await (supabase as any)
           .from("options")
           .update({ count: selectedOptionData.count + 1 })
           .eq("id", optionId);

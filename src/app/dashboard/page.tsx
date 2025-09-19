@@ -74,7 +74,7 @@ export default function DashboardPage() {
 
   const togglePollStatus = async (pollId: string, currentStatus: boolean) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("polls")
         .update({ is_open: !currentStatus })
         .eq("id", pollId);
