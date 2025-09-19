@@ -41,7 +41,7 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
       });
@@ -54,7 +54,7 @@ export default function SignupPage() {
         );
         router.push("/auth/login");
       }
-    } catch (error) {
+    } catch {
       toast.error("회원가입 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);

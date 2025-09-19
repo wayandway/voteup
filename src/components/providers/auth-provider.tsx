@@ -33,7 +33,7 @@ export default function AuthProvider({
     });
 
     return () => subscription.unsubscribe();
-  }, [setUser, setLoading]);
+  }, [setUser, setLoading, supabase]);
 
   return <>{children}</>;
 }

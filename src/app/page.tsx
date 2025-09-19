@@ -11,11 +11,9 @@ import {
 import { useAuthStore } from "@/store";
 import { Vote, Users, BarChart3, Zap } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 export default function HomePage() {
   const { user, loading: authLoading } = useAuthStore();
-  const router = useRouter();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">

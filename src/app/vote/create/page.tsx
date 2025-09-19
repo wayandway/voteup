@@ -119,7 +119,7 @@ export default function CreatePollPage() {
 
       toast.success("투표가 성공적으로 생성되었습니다!");
       router.push("/dashboard");
-    } catch (error) {
+    } catch {
       toast.error("투표 생성 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);

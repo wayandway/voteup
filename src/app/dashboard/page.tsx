@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase";
 import { useAuthStore, usePollStore } from "@/store";
 import {
@@ -11,14 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui";
-import {
-  Vote,
-  Plus,
-  Users,
-  BarChart3,
-  ExternalLink,
-  Settings,
-} from "lucide-react";
+import { Vote, Plus, Users, BarChart3, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -30,21 +23,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const supabase = createClient();
 
-  useEffect(() => {
-    // 인증 상태 로딩 중이면 대기
-    if (authLoading) {
-      return;
-    }
-
-    if (!user) {
-      router.push("/auth/login");
-      return;
-    }
-
-    fetchPolls();
-  }, [user, authLoading, router]);
-
-  const fetchPolls = async () => {
+  const fetchPolls = useCallback(async () => {
     if (!user) return;
 
     setLoading(true);
@@ -65,12 +44,26 @@ export default function DashboardPage() {
       } else {
         setPolls(data || []);
       }
-    } catch (error) {
+    } catch {
       toast.error("투표 목록을 불러오는 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, supabase, setLoading, setPolls]);
+
+  useEffect(() => {
+    // 인증 상태 로딩 중이면 대기
+    if (authLoading) {
+      return;
+    }
+
+    if (!user) {
+      router.push("/auth/login");
+      return;
+    }
+
+    fetchPolls();
+  }, [user, authLoading, router, fetchPolls]);
 
   const togglePollStatus = async (pollId: string, currentStatus: boolean) => {
     try {
@@ -87,7 +80,7 @@ export default function DashboardPage() {
         );
         fetchPolls();
       }
-    } catch (error) {
+    } catch {
       toast.error("투표 상태 변경 중 오류가 발생했습니다.");
     }
   };
@@ -97,7 +90,7 @@ export default function DashboardPage() {
     try {
       await navigator.clipboard.writeText(link);
       toast.success("투표 링크가 복사되었습니다!");
-    } catch (error) {
+    } catch {
       toast.error("링크 복사에 실패했습니다.");
     }
   };

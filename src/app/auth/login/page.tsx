@@ -29,7 +29,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -40,7 +40,7 @@ export default function LoginPage() {
         toast.success("로그인 성공");
         router.push("/dashboard");
       }
-    } catch (error) {
+    } catch {
       toast.error("로그인 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);

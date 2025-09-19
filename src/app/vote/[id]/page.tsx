@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase";
-import { usePollStore } from "@/store";
 import {
   Button,
   Card,
@@ -18,7 +17,6 @@ import {
   canVote,
   markAsVoted,
   generateParticipantToken,
-  calculateProgress,
 } from "@/lib/vote-utils";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -48,6 +46,31 @@ export default function VotePage() {
   const [selectedOption, setSelectedOption] = useState<string>("");
 
   const supabase = createClient();
+
+  const fetchPoll = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from("polls")
+        .select(
+          `
+          *,
+          options (*)
+        `
+        )
+        .eq("id", pollId)
+        .single();
+
+      if (error) {
+        toast.error("투표를 찾을 수 없습니다.");
+      } else {
+        setPoll(data);
+      }
+    } catch {
+      toast.error("투표를 불러오는 중 오류가 발생했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  }, [pollId, supabase]);
 
   useEffect(() => {
     if (pollId) {
@@ -85,32 +108,7 @@ export default function VotePage() {
         subscription.unsubscribe();
       };
     }
-  }, [pollId]);
-
-  const fetchPoll = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("polls")
-        .select(
-          `
-          *,
-          options (*)
-        `
-        )
-        .eq("id", pollId)
-        .single();
-
-      if (error) {
-        toast.error("투표를 찾을 수 없습니다.");
-      } else {
-        setPoll(data);
-      }
-    } catch (error) {
-      toast.error("투표를 불러오는 중 오류가 발생했습니다.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [pollId, fetchPoll, supabase]);
 
   const handleVote = async (optionId: string) => {
     if (!poll || !poll.is_open || hasVoted) {
@@ -157,7 +155,7 @@ export default function VotePage() {
       setHasVoted(true);
       setSelectedOption(optionId);
       toast.success("투표가 완료되었습니다!");
-    } catch (error) {
+    } catch {
       toast.error("투표 중 오류가 발생했습니다.");
     } finally {
       setVoting(false);
