@@ -1,17 +1,28 @@
 import { create } from "zustand";
 import type { User } from "@supabase/supabase-js";
 
+interface UserProfile {
+  id: string;
+  email: string;
+  username?: string;
+  created_at: string;
+}
+
 interface AuthState {
   user: User | null;
+  userProfile: UserProfile | null;
   loading: boolean;
   setUser: (user: User | null) => void;
+  setUserProfile: (profile: UserProfile | null) => void;
   setLoading: (loading: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
+  userProfile: null,
   loading: true,
   setUser: (user) => set({ user }),
+  setUserProfile: (userProfile) => set({ userProfile }),
   setLoading: (loading) => set({ loading }),
 }));
 

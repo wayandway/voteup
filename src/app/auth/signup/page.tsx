@@ -19,6 +19,7 @@ import { toast } from "sonner";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -38,17 +39,39 @@ export default function SignupPage() {
       return;
     }
 
+    if (username.trim().length < 2) {
+      toast.error("사용자명은 최소 2자 이상이어야 합니다.");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            username: username.trim(),
+          },
+        },
       });
 
       if (error) {
         toast.error("회원가입 실패: " + error.message);
       } else {
+        if (data.user) {
+          const { error: profileError } = await supabase.from("users").insert({
+            id: data.user.id,
+            email: data.user.email!,
+            username: username.trim(),
+          });
+
+          if (profileError) {
+            console.error("프로필 저장 오류:", profileError);
+          }
+        }
+
         toast.success(
           "회원가입 성공! 가입한 이메일로 보낸 인증메일을 확인해주세요."
         );
@@ -88,6 +111,17 @@ export default function SignupPage() {
                   placeholder="your@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="username">사용자명</Label>
+                <Input
+                  id="username"
+                  type="text"
+                  placeholder="사용자명을 입력하세요"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   required
                 />
               </div>

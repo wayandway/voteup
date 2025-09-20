@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { formatTime, generatePollLink } from "@/lib/vote-utils";
 
 export default function DashboardPage() {
-  const { user, loading: authLoading } = useAuthStore();
+  const { user, userProfile, loading: authLoading } = useAuthStore();
   const { polls, setPolls, loading, setLoading } = usePollStore();
   const router = useRouter();
   const supabase = createClient();
@@ -114,6 +114,30 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-16">
       <div className="container mx-auto px-4 py-8">
+        {user && !userProfile?.username && (
+          <Card className="mb-6 border-yellow-200 bg-yellow-50">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-yellow-800 mb-1">
+                    프로필 설정을 완료하세요
+                  </h3>
+                  <p className="text-yellow-700">
+                    사용자명을 설정하여 더 나은 경험을 누리세요.
+                  </p>
+                </div>
+                <Button
+                  asChild
+                  variant="outline"
+                  className="border-yellow-300 text-yellow-800 hover:bg-yellow-100"
+                >
+                  <Link href="/profile">설정하기</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">대시보드</h2>
           <p className="text-gray-600">

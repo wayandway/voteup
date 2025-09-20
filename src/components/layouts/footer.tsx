@@ -52,6 +52,14 @@ export default function Footer() {
               </li>
               <li>
                 <Link
+                  href="/profile"
+                  className="hover:text-gray-900 transition-colors"
+                >
+                  프로필 설정
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/features"
                   className="hover:text-gray-900 transition-colors"
                 >

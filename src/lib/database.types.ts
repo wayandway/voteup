@@ -5,16 +5,19 @@ export type Database = {
         Row: {
           id: string;
           email: string;
+          username?: string;
           created_at: string;
         };
         Insert: {
           id?: string;
           email: string;
+          username?: string;
           created_at?: string;
         };
         Update: {
           id?: string;
           email?: string;
+          username?: string;
           created_at?: string;
         };
       };
