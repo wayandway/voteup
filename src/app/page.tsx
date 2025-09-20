@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui";
+import { Footer } from "@/components/layouts";
 import { useAuthStore } from "@/store";
 import { Vote, Users, BarChart3, Zap } from "lucide-react";
 import Link from "next/link";
@@ -16,44 +17,8 @@ export default function HomePage() {
   const { user, loading: authLoading } = useAuthStore();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <header className="border-b bg-white/80 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Vote className="h-8 w-8 text-blue-600" />
-            <h1 className="text-2xl font-bold text-gray-900">VoteUP</h1>
-          </div>
-
-          <nav className="flex items-center space-x-4">
-            {authLoading ? (
-              <div className="flex items-center space-x-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                <span className="text-sm text-gray-600">로딩 중...</span>
-              </div>
-            ) : user ? (
-              <>
-                <Button variant="outline" asChild>
-                  <Link href="/dashboard">대시보드</Link>
-                </Button>
-                <Button asChild>
-                  <Link href="/vote/create">투표 만들기</Link>
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button variant="outline" asChild>
-                  <Link href="/auth/login">로그인</Link>
-                </Button>
-                <Button asChild>
-                  <Link href="/auth/signup">회원가입</Link>
-                </Button>
-              </>
-            )}
-          </nav>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-4 py-16">
+    <div className="bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-16">
           <h2 className="text-5xl font-bold text-gray-900 mb-6">
             실시간 투표의 새로운 경험
@@ -139,13 +104,8 @@ export default function HomePage() {
             </Button>
           )}
         </div>
-      </main>
-
-      <footer className="border-t bg-white">
-        <div className="container mx-auto px-4 py-8 text-center text-gray-600">
-          <p>&copy; 2025 VoteUP. 실시간 투표의 새로운 경험.</p>
-        </div>
-      </footer>
+      </div>
+      <Footer />
     </div>
   );
 }

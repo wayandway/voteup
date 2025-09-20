@@ -98,7 +98,7 @@ export default function DashboardPage() {
   // 인증 상태 로딩 중
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="bg-gray-50 flex items-center justify-center py-20">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">로딩 중...</p>
@@ -112,26 +112,8 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="border-b bg-white">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center space-x-2">
-            <Vote className="h-8 w-8 text-blue-600" />
-            <h1 className="text-2xl font-bold text-gray-900">VoteUP</h1>
-          </Link>
-
-          <div className="flex items-center space-x-4">
-            <span className="text-sm text-gray-600">{user.email}</span>
-            <Button asChild>
-              <Link href="/vote/create">
-                <Plus className="h-4 w-4 mr-2" />새 투표
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gray-50 pb-16">
+      <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">대시보드</h2>
           <p className="text-gray-600">
@@ -240,7 +222,7 @@ export default function DashboardPage() {
             })}
           </div>
         )}
-      </main>
+      </div>
     </div>
   );
 }
