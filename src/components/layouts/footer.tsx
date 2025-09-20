@@ -1,17 +1,16 @@
-import { Vote, Github, Mail } from "lucide-react";
+import { Github, Mail } from "lucide-react";
 import Link from "next/link";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="border-t bg-gray-50">
+    <footer className="border-t bg-[var(--stone-100)]">
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* 브랜드 섹션 */}
           <div className="md:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
-              <Vote className="h-6 w-6 text-blue-600" />
               <span className="text-xl font-bold text-gray-900">VoteUP</span>
             </div>
             <p className="text-gray-600 mb-4 max-w-md">
