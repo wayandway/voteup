@@ -46,7 +46,7 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [user?.id]);
+  }, [setLoading, setPolls, supabase, user]);
 
   useEffect(() => {
     // 인증 상태 로딩 중이면 대기
@@ -60,7 +60,7 @@ export default function DashboardPage() {
     }
 
     fetchPolls();
-  }, [user?.id, authLoading, fetchPolls]);
+  }, [user?.id, authLoading, fetchPolls, router, user]);
 
   const togglePollStatus = async (pollId: string, currentStatus: boolean) => {
     try {

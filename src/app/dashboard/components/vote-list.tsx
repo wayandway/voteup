@@ -19,41 +19,48 @@ import { formatTime } from "@/lib/vote-utils";
 
 interface Vote {
   id: string;
-  question: string;
+  title: string;
   is_open: boolean;
   created_at: string;
-  options?: { vote_count?: number }[];
+  options?: Option[];
+}
+
+interface Option {
+  id: string;
+  poll_id: string;
+  label: string;
+  count: number;
 }
 
 interface VoteListProps {
-  votes?: any[];
+  polls?: Vote[];
   loading?: boolean;
   filter?: string;
-  onToggleVoteStatus?: (voteId: string, currentStatus: boolean) => void;
-  onCopyVoteLink?: (voteId: string) => void;
+  onTogglePollStatus?: (pollId: string, currentStatus: boolean) => void;
+  onCopyPollLink?: (pollId: string) => void;
 }
 
 export default function VoteList({
-  votes = [],
+  polls = [],
   loading = false,
   filter = "all",
-  onToggleVoteStatus,
-  onCopyVoteLink,
+  onTogglePollStatus,
+  onCopyPollLink,
 }: VoteListProps) {
-  const getFilteredVotes = useCallback(() => {
-    if (!votes || votes.length === 0) return [];
+  const getFilteredPolls = useCallback(() => {
+    if (!polls || polls.length === 0) return [];
 
     switch (filter) {
       case "active":
-        return votes.filter((vote: any) => vote.is_open);
+        return polls.filter((poll: any) => poll.is_open);
       case "closed":
-        return votes.filter((vote: any) => !vote.is_open);
+        return polls.filter((poll: any) => !poll.is_open);
       default:
-        return votes;
+        return polls;
     }
-  }, [votes, filter]);
+  }, [polls, filter]);
 
-  const filteredVotes = getFilteredVotes();
+  const filteredPolls = getFilteredPolls();
 
   if (loading) {
     return (
@@ -66,7 +73,7 @@ export default function VoteList({
     );
   }
 
-  if (filteredVotes.length === 0) {
+  if (filteredPolls.length === 0) {
     return (
       <Card className="border bg-white shadow-lg">
         <CardContent className="py-20">
@@ -104,16 +111,16 @@ export default function VoteList({
 
   return (
     <div className="grid gap-6">
-      {filteredVotes.map((vote) => {
+      {filteredPolls.map((poll) => {
         const totalVotes =
-          vote.options?.reduce(
-            (sum, option) => sum + (option.vote_count || 0),
+          poll.options?.reduce(
+            (sum: number, option: Option) => sum + (option.count || 0),
             0
           ) || 0;
 
         return (
           <Card
-            key={vote.id}
+            key={poll.id}
             className="border bg-white shadow-lg hover:shadow-xl transition-all duration-300 group"
           >
             <CardHeader className="pb-4">
@@ -122,17 +129,17 @@ export default function VoteList({
                   <div className="flex items-center space-x-3 mb-2">
                     <div
                       className={`w-3 h-3 rounded-full ${
-                        vote.is_open ? "bg-green-400" : "bg-gray-400"
+                        poll.is_open ? "bg-green-400" : "bg-gray-400"
                       }`}
                     ></div>
                     <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-gray-700 transition-colors">
-                      {vote.question}
+                      {poll.title}
                     </CardTitle>
                   </div>
                   <div className="flex items-center space-x-4 text-sm text-gray-500">
                     <div className="flex items-center space-x-1">
                       <Clock className="h-4 w-4" />
-                      <span>{formatTime(vote.created_at)}</span>
+                      <span>{formatTime(poll.created_at)}</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <Users className="h-4 w-4" />
@@ -143,12 +150,12 @@ export default function VoteList({
                 <div className="flex items-center space-x-2">
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      vote.is_open
+                      poll.is_open
                         ? "bg-green-100 text-green-800"
                         : "bg-gray-100 text-gray-800"
                     }`}
                   >
-                    {vote.is_open ? "진행 중" : "종료됨"}
+                    {poll.is_open ? "진행 중" : "종료됨"}
                   </span>
                 </div>
               </div>
@@ -159,7 +166,7 @@ export default function VoteList({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => onCopyVoteLink(vote.id)}
+                    onClick={() => onCopyPollLink?.(poll.id)}
                     className="border-gray-200 hover:bg-gray-50"
                   >
                     <ExternalLink className="h-4 w-4 mr-2" />
@@ -171,21 +178,21 @@ export default function VoteList({
                     className="border-gray-200 hover:bg-gray-50"
                     asChild
                   >
-                    <Link href={`/vote/${vote.id}`}>
+                    <Link href={`/vote/${poll.id}`}>
                       <BarChart3 className="h-4 w-4 mr-2" />
                       결과 보기
                     </Link>
                   </Button>
                 </div>
                 <Button
-                  variant={vote.is_open ? "destructive" : "default"}
+                  variant={poll.is_open ? "destructive" : "default"}
                   size="sm"
-                  onClick={() => onToggleVoteStatus(vote.id, vote.is_open)}
+                  onClick={() => onTogglePollStatus?.(poll.id, poll.is_open)}
                   className={
-                    vote.is_open ? "" : "bg-green-600 hover:bg-green-700"
+                    poll.is_open ? "" : "bg-green-600 hover:bg-green-700"
                   }
                 >
-                  {vote.is_open ? "투표 종료" : "투표 시작"}
+                  {poll.is_open ? "투표 종료" : "투표 시작"}
                 </Button>
               </div>
             </CardContent>

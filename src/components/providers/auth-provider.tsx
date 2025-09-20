@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase";
 import { useAuthStore } from "@/store";
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 
 export default function AuthProvider({
   children,
@@ -12,25 +12,28 @@ export default function AuthProvider({
   const { setUser, setUserProfile, setLoading } = useAuthStore();
   const supabase = createClient();
 
-  const fetchUserProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", userId)
-        .single();
+  const fetchUserProfile = useCallback(
+    async (userId: string) => {
+      try {
+        const { data, error } = await supabase
+          .from("users")
+          .select("*")
+          .eq("id", userId)
+          .single();
 
-      if (error) {
-        console.error("사용자 프로필 조회 오류:", error);
+        if (error) {
+          console.error("사용자 프로필 조회 오류:", error);
+          setUserProfile(null);
+        } else {
+          setUserProfile(data);
+        }
+      } catch (error) {
+        console.error("사용자 프로필 조회 중 오류:", error);
         setUserProfile(null);
-      } else {
-        setUserProfile(data);
       }
-    } catch (error) {
-      console.error("사용자 프로필 조회 중 오류:", error);
-      setUserProfile(null);
-    }
-  };
+    },
+    [supabase, setUserProfile]
+  );
 
   useEffect(() => {
     // 초기 세션 확인
@@ -68,7 +71,7 @@ export default function AuthProvider({
     });
 
     return () => subscription.unsubscribe();
-  }, [setUser, setUserProfile, setLoading, supabase]);
+  }, [setUser, setUserProfile, setLoading, supabase, fetchUserProfile]);
 
   return <>{children}</>;
 }

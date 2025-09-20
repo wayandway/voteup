@@ -1,20 +1,20 @@
-import {
-  Archive,
-  Play,
-  CheckCircle,
-  Vote,
-  Calendar,
-  Clock,
-} from "lucide-react";
+import { Archive, Play, CheckCircle, Vote, Calendar } from "lucide-react";
 import Link from "next/link";
 import { formatTime } from "@/lib/vote-utils";
 
 interface Poll {
   id: string;
-  question: string;
+  title: string;
   is_open: boolean;
   created_at: string;
-  options?: { vote_count?: number }[];
+  options?: Option[];
+}
+
+interface Option {
+  id: string;
+  poll_id: string;
+  label: string;
+  count: number;
 }
 
 interface DashboardSidebarNewProps {
@@ -113,7 +113,7 @@ export default function DashboardSidebarNew({
               filteredPolls.map((poll) => {
                 const totalVotes =
                   poll.options?.reduce(
-                    (sum, option) => sum + (option.vote_count || 0),
+                    (sum: number, option: Option) => sum + (option.count || 0),
                     0
                   ) || 0;
 
@@ -130,7 +130,7 @@ export default function DashboardSidebarNew({
                     <div className="space-y-2">
                       <div className="flex items-start justify-between">
                         <h4 className="text-sm font-medium text-gray-900 line-clamp-2">
-                          {poll.question}
+                          {poll.title}
                         </h4>
                         <div
                           className={`px-2 py-1 rounded-full text-xs font-medium ${

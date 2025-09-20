@@ -9,14 +9,11 @@ import {
   CardTitle,
 } from "@/components/ui";
 import { Footer, GlobalHeader } from "@/components/layouts";
-import { useAuthStore } from "@/store";
-import { Vote, Users, BarChart3, Zap } from "lucide-react";
+import { Users, BarChart3, Zap } from "lucide-react";
 import Link from "next/link";
-import { ArrowRight, CheckCircle } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 export default function HomePage() {
-  const { user, userProfile } = useAuthStore();
-
   const scrollToFeatures = () => {
     const featuresElement = document.getElementById("features");
     if (featuresElement) {

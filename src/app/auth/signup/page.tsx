@@ -60,11 +60,13 @@ export default function SignupPage() {
         toast.error("회원가입 실패: " + error.message);
       } else {
         if (data.user) {
-          const { error: profileError } = await supabase.from("users").insert({
-            id: data.user.id,
-            email: data.user.email!,
-            username: username.trim(),
-          });
+          const { error: profileError } = await (supabase as any)
+            .from("users")
+            .insert({
+              id: data.user.id,
+              email: data.user.email!,
+              username: username.trim(),
+            });
 
           if (profileError) {
             console.error("프로필 저장 오류:", profileError);

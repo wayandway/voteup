@@ -42,7 +42,7 @@ export default function SettingPage() {
     if (userProfile) {
       setUsername(userProfile.username || "");
     }
-  }, [user, userProfile, authLoading]); // router 제거
+  }, [user, userProfile, authLoading, router]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,7 +60,7 @@ export default function SettingPage() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("users")
         .upsert({
           id: user.id,

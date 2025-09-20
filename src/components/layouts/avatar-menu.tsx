@@ -5,6 +5,7 @@ import { useAuthStore } from "@/store";
 import { createClient } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import Link from "next/link";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export default function AvatarMenu() {
-  const { user, userProfile, setUser, setUserProfile } = useAuthStore();
+  const { user, setUser, setUserProfile } = useAuthStore();
   const router = useRouter();
   const supabase = createClient();
 
@@ -47,15 +48,18 @@ export default function AvatarMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuItem asChild>
-          <a href="/dashboard" className="flex items-center cursor-pointer">
+          <Link href="/dashboard" className="flex items-center cursor-pointer">
             <Vote className="h-4 w-4 mr-2" />
             대시보드
-          </a>
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <a href="/vote/create" className="flex items-center cursor-pointer">
+          <Link
+            href="/vote/create"
+            className="flex items-center cursor-pointer"
+          >
             <Vote className="h-4 w-4 mr-2" />새 투표
-          </a>
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
