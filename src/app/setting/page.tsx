@@ -42,7 +42,7 @@ export default function SettingPage() {
     if (userProfile) {
       setUsername(userProfile.username || "");
     }
-  }, [user, userProfile, authLoading, router]);
+  }, [user, userProfile, authLoading]); // router 제거
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,9 +85,9 @@ export default function SettingPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--stone-100)] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
           <p className="mt-4 text-gray-600">로딩 중...</p>
         </div>
       </div>
