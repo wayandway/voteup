@@ -12,7 +12,6 @@ import {
   Input,
   Label,
 } from "@/components/ui";
-import { Vote } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -85,11 +84,10 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[var(--stone-100)] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center space-x-2">
-            <Vote className="h-8 w-8 text-blue-600" />
             <span className="text-2xl font-bold text-gray-900">VoteUP</span>
           </Link>
         </div>
