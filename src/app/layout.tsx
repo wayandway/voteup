@@ -12,6 +12,23 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "VoteUP | 누구나 쉽게 만드는 실시간 투표",
   description: "스트리밍 이벤트, 세미나, 온라인 모임을 위한 실시간 투표 서비스",
+  icons: { icon: "/favicon.png" },
+  openGraph: {
+    title: "VoteUP | 누구나 쉽게 만드는 실시간 투표",
+    description:
+      "스트리밍 이벤트, 세미나, 온라인 모임을 위한 실시간 투표 서비스",
+    url: "https://voteup-lake.vercel.app",
+    images: [
+      {
+        url: "/main-og.png",
+        width: 1200,
+        height: 630,
+        alt: "VoteUP | 누구나 쉽게 만드는 실시간 투표 - 커버 이미지",
+      },
+    ],
+    locale: "ko_KR",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
