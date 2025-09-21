@@ -6,6 +6,7 @@ export * from "./dropdown-menu";
 export * from "./form";
 export * from "./input";
 export * from "./label";
+export * from "./slider";
 export * from "./toaster";
 
 // Named exports for better tree-shaking and explicit imports
