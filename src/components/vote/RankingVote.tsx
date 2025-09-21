@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Vote, VoteOption } from "@/types/vote";
+import Image from "next/image";
+import { Vote } from "@/types/vote";
 import { Button, Card, CardContent } from "@/components/ui";
 
 interface RankingVoteProps {
@@ -105,10 +106,12 @@ export default function RankingVote({
                       </div>
 
                       {option.image_url && (
-                        <img
+                        <Image
                           src={option.image_url}
                           alt={option.image_alt || option.text}
-                          className="w-12 h-12 object-cover rounded-lg"
+                          width={48}
+                          height={48}
+                          className="object-cover rounded-lg"
                         />
                       )}
 

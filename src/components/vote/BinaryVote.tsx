@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Vote } from "@/types/vote";
 import { Button, Card, CardContent } from "@/components/ui";
 
@@ -60,10 +61,12 @@ export default function BinaryVote({
           <CardContent className="p-6 text-center">
             <div className="space-y-4">
               {yesOption.image_url ? (
-                <img
+                <Image
                   src={yesOption.image_url}
                   alt={yesOption.image_alt || yesOption.text}
-                  className="w-20 h-20 mx-auto object-cover rounded-lg"
+                  width={80}
+                  height={80}
+                  className="mx-auto object-cover rounded-lg"
                 />
               ) : (
                 <div className="w-20 h-20 mx-auto bg-blue-100 rounded-full flex items-center justify-center">
@@ -94,10 +97,12 @@ export default function BinaryVote({
           <CardContent className="p-6 text-center">
             <div className="space-y-4">
               {noOption.image_url ? (
-                <img
+                <Image
                   src={noOption.image_url}
                   alt={noOption.image_alt || noOption.text}
-                  className="w-20 h-20 mx-auto object-cover rounded-lg"
+                  width={80}
+                  height={80}
+                  className="mx-auto object-cover rounded-lg"
                 />
               ) : (
                 <div className="w-20 h-20 mx-auto bg-orange-100 rounded-full flex items-center justify-center">

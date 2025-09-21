@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import Image from "next/image";
 import { VoteType, VoteOption, VOTE_TYPE_CONFIGS } from "@/types/vote";
 import { Button, Input, Label } from "@/components/ui";
-import { Plus, X, Upload, Image as ImageIcon } from "lucide-react";
+import { Plus, X, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
-import { ImageService } from "@/lib/image-service";
 
 interface VoteOptionsEditorProps {
   voteType: VoteType;
@@ -168,12 +167,13 @@ export default function VoteOptionsEditor({
 
                   {option.image_url && (
                     <div className="flex items-center space-x-2 mt-2">
-                      <img
+                      <Image
                         src={option.image_url}
                         alt={option.image_alt || "미리보기"}
-                        className="w-12 h-12 object-cover rounded border"
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
+                        width={48}
+                        height={48}
+                        className="object-cover rounded border"
+                        onError={() => {
                           toast.error("이미지를 불러올 수 없습니다.");
                         }}
                       />
