@@ -2,8 +2,6 @@ import { createClient } from "./supabase";
 import { ImageService } from "./image-service";
 import type {
   Vote,
-  VoteOption,
-  VoteResponse,
   CreateVoteData,
 } from "@/types/vote";
 
@@ -22,7 +20,7 @@ export class VoteService {
       throw new Error("로그인이 필요합니다.");
     }
 
-    const { data: vote, error: voteError } = await supabase
+    const { data: vote, error: voteError } = await (supabase as any)
       .from("votes")
       .insert({
         host_id: user.id, 
@@ -53,7 +51,7 @@ export class VoteService {
                 vote.id,
                 index
               );
-            } catch (error) {
+            } catch {
               imageUrl = undefined;
             }
           }
@@ -68,12 +66,12 @@ export class VoteService {
         })
       );
 
-      const { error: optionsError } = await supabase
+      const { error: optionsError } = await (supabase as any)
         .from("options")
         .insert(optionsData);
 
       if (optionsError) {
-        await supabase.from("votes").delete().eq("id", vote.id);
+        await (supabase as any).from("votes").delete().eq("id", vote.id);
         throw new Error(`옵션 생성 실패: ${optionsError.message}`);
       }
     }
@@ -84,7 +82,7 @@ export class VoteService {
   static async getVoteById(voteId: string): Promise<Vote> {
     const supabase = this.supabase;
 
-    const { data: vote, error: voteError } = await supabase
+    const { data: vote, error: voteError } = await (supabase as any)
       .from("votes")
       .select(
         `
@@ -103,18 +101,18 @@ export class VoteService {
 
     if (voteError) throw new Error(`투표 조회 실패: ${voteError.message}`);
 
-    if (vote.options) {
-      vote.options.sort((a: any, b: any) => a.display_order - b.display_order);
+    if ((vote as any).options) {
+      (vote as any).options.sort((a: any, b: any) => a.display_order - b.display_order);
     }
 
-    const { data: responses, error: responseError } = await supabase
+    const { data: responses, error: responseError } = await (supabase as any)
       .from("responses")
       .select("participant_token")
       .eq("vote_id", voteId);
 
     let participantCount = 0;
     if (!responseError && responses) {
-      const uniqueParticipants = new Set(responses.map(r => r.participant_token));
+      const uniqueParticipants = new Set(responses.map((r: any) => r.participant_token));
       participantCount = uniqueParticipants.size;
     }
 
@@ -140,7 +138,7 @@ export class VoteService {
       ranking: response.ranking || null,
     }));
 
-    const { error } = await supabase.from("responses").insert(responseData);
+    const { error } = await (supabase as any).from("responses").insert(responseData);
 
     if (error) throw new Error(`응답 제출 실패: ${error.message}`);
   }
@@ -148,7 +146,7 @@ export class VoteService {
   static async getVoteResults(voteId: string) {
     const supabase = this.supabase;
 
-    const { data: responses, error } = await supabase
+    const { data: responses, error } = await (supabase as any)
       .from("responses")
       .select(
         `
@@ -173,7 +171,7 @@ export class VoteService {
   ) {
     const supabase = this.supabase;
 
-    const { data: responses, error } = await supabase
+    const { data: responses, error } = await (supabase as any)
       .from("responses")
       .select("*")
       .eq("vote_id", voteId)
@@ -187,7 +185,7 @@ export class VoteService {
   static async getUserVotes(userId: string): Promise<Vote[]> {
     const supabase = this.supabase;
 
-    const { data: votes, error } = await supabase
+    const { data: votes, error } = await (supabase as any)
       .from("votes")
       .select(
         `
@@ -207,8 +205,8 @@ export class VoteService {
     if (error) throw new Error(`투표 목록 조회 실패: ${error.message}`);
 
     const votesWithParticipantCount = await Promise.all(
-      votes.map(async (vote) => {
-        const { data: responses, error: responseError } = await supabase
+      votes.map(async (vote: any) => {
+        const { data: responses, error: responseError } = await (supabase as any)
           .from("responses")
           .select("participant_token")
           .eq("vote_id", vote.id);
@@ -217,7 +215,7 @@ export class VoteService {
           return { ...vote, participant_count: 0 };
         }
 
-        const uniqueParticipants = new Set(responses.map(r => r.participant_token));
+        const uniqueParticipants = new Set(responses.map((r: any) => r.participant_token));
         return { ...vote, participant_count: uniqueParticipants.size };
       })
     );
@@ -231,7 +229,7 @@ export class VoteService {
     try {
       await ImageService.deleteVoteImages(voteId);
       
-      const { error } = await supabase.from("votes").delete().eq("id", voteId);
+      const { error } = await (supabase as any).from("votes").delete().eq("id", voteId);
 
       if (error) throw new Error(`투표 삭제 실패: ${error.message}`);
     } catch (error: any) {
@@ -245,7 +243,7 @@ export class VoteService {
   ): Promise<void> {
     const supabase = this.supabase;
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from("votes")
       .update({ is_open: isOpen })
       .eq("id", voteId);
@@ -281,7 +279,7 @@ export class VoteService {
   static async toggleVoteStatus(voteId: string, isOpen: boolean): Promise<void> {
     const supabase = this.supabase;
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from("votes")
       .update({ is_open: isOpen })
       .eq("id", voteId);

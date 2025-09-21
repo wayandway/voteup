@@ -27,7 +27,7 @@ export class ImageService {
 
       const fileName = `${voteId}/${optionIndex}-${Date.now()}.${fileExt}`;
 
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from(this.BUCKET_NAME)
         .upload(fileName, compressedFile, {
           cacheControl: "3600",
@@ -43,7 +43,7 @@ export class ImageService {
         .getPublicUrl(fileName);
 
       return publicUrl;
-    } catch (error: any) {
+    } catch {
       return this.fallbackToBase64(file);
     }
   }
