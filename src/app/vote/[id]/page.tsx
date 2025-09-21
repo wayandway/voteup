@@ -173,7 +173,7 @@ export default function VotePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--stone-100)] flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">투표를 불러오는 중...</p>
@@ -184,7 +184,7 @@ export default function VotePage() {
 
   if (!poll) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--stone-100)] flex items-center justify-center">
         <Card className="w-full max-w-md text-center">
           <CardContent className="pt-6">
             <Vote className="h-16 w-16 text-gray-400 mx-auto mb-4" />
@@ -201,7 +201,7 @@ export default function VotePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 pb-16">
+    <div className="min-h-screen bg-[var(--stone-100)] pb-16">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <Card className="mb-6">
