@@ -35,7 +35,7 @@ export default function SettingPage() {
     }
 
     if (!user) {
-      router.push("/auth/login");
+      router.push("/auth/signin");
       return;
     }
 

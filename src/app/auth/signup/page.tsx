@@ -76,7 +76,7 @@ export default function SignupPage() {
         toast.success(
           "회원가입 성공! 가입한 이메일로 보낸 인증메일을 확인해주세요."
         );
-        router.push("/auth/login");
+        router.push("/auth/signin");
       }
     } catch {
       toast.error("회원가입 중 오류가 발생했습니다.");
@@ -156,7 +156,7 @@ export default function SignupPage() {
               <p className="text-sm text-gray-600">
                 이미 계정이 있으신가요?{" "}
                 <Link
-                  href="/auth/login"
+                  href="/auth/signin"
                   className="text-blue-600 hover:underline"
                 >
                   로그인
