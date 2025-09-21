@@ -63,10 +63,10 @@ export default function AvatarMenu() {
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <a href="/setting" className="flex items-center cursor-pointer">
+          <Link href="/setting" className="flex items-center cursor-pointer">
             <Settings className="h-4 w-4 mr-2" />
             설정
-          </a>
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem

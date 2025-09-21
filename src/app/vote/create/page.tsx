@@ -129,7 +129,7 @@ export default function CreatePollPage() {
   // 인증 상태 로딩 중
   if (authLoading) {
     return (
-      <div className="bg-gray-50 flex items-center justify-center py-20">
+      <div className="min-h-screen bg-[var(--stone-100)] flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">로딩 중...</p>

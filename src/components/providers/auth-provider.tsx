@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase";
 import { useAuthStore } from "@/store";
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback } from "react";
 
 export default function AuthProvider({
   children,
@@ -11,7 +11,6 @@ export default function AuthProvider({
 }) {
   const { setUser, setUserProfile, setLoading } = useAuthStore();
   const supabase = createClient();
-  const [isMounted, setIsMounted] = useState(false);
 
   const fetchUserProfile = useCallback(
     async (userId: string) => {
@@ -37,27 +36,26 @@ export default function AuthProvider({
   );
 
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isMounted) return;
-
     // 초기 세션 확인
     const getSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
 
-      setUser(session?.user ?? null);
+        setUser(session?.user ?? null);
 
-      if (session?.user) {
-        await fetchUserProfile(session.user.id);
-      } else {
-        setUserProfile(null);
+        if (session?.user) {
+          await fetchUserProfile(session.user.id);
+        } else {
+          setUserProfile(null);
+        }
+
+        setLoading(false);
+      } catch (error) {
+        console.error("세션 조회 오류:", error);
+        setLoading(false);
       }
-
-      setLoading(false);
     };
 
     getSession();
@@ -66,30 +64,24 @@ export default function AuthProvider({
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setUser(session?.user ?? null);
+      try {
+        setUser(session?.user ?? null);
 
-      if (session?.user) {
-        await fetchUserProfile(session.user.id);
-      } else {
-        setUserProfile(null);
+        if (session?.user) {
+          await fetchUserProfile(session.user.id);
+        } else {
+          setUserProfile(null);
+        }
+
+        setLoading(false);
+      } catch (error) {
+        console.error("인증 상태 변화 처리 오류:", error);
+        setLoading(false);
       }
-
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
-  }, [
-    isMounted,
-    setUser,
-    setUserProfile,
-    setLoading,
-    supabase,
-    fetchUserProfile,
-  ]);
-
-  if (!isMounted) {
-    return null;
-  }
+  }, [setUser, setUserProfile, setLoading, supabase, fetchUserProfile]);
 
   return <>{children}</>;
 }
