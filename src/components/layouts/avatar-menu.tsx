@@ -39,7 +39,7 @@ export default function AvatarMenu() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+      <DropdownMenuTrigger asChild className="cursor-pointer">
         <button className="hover:opacity-80 transition-opacity focus:outline-none">
           <div className="h-8 w-8 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-sm">
             <User className="h-4 w-4 text-gray-500" />

@@ -51,18 +51,10 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/profile"
+                  href="/setting"
                   className="hover:text-gray-900 transition-colors"
                 >
-                  프로필 설정
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/features"
-                  className="hover:text-gray-900 transition-colors"
-                >
-                  기능 소개
+                  계정 설정
                 </Link>
               </li>
             </ul>
@@ -72,38 +64,10 @@ export default function Footer() {
           <div>
             <h3 className="font-semibold text-gray-900 mb-4">지원</h3>
             <ul className="space-y-2 text-sm text-gray-600">
-              <li>
-                <Link
-                  href="/help"
-                  className="hover:text-gray-900 transition-colors"
-                >
-                  도움말
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/contact"
-                  className="hover:text-gray-900 transition-colors"
-                >
-                  문의하기
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/privacy"
-                  className="hover:text-gray-900 transition-colors"
-                >
-                  개인정보처리방침
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/terms"
-                  className="hover:text-gray-900 transition-colors"
-                >
-                  서비스 이용약관
-                </Link>
-              </li>
+              <li>도움말</li>
+              <li>문의하기</li>
+              <li>개인정보처리방침</li>
+              <li>서비스 이용약관</li>
             </ul>
           </div>
         </div>
@@ -111,9 +75,6 @@ export default function Footer() {
         <div className="border-t border-gray-200 mt-8 pt-6 flex flex-col sm:flex-row justify-between items-center">
           <p className="text-sm text-gray-500">
             © {currentYear} VoteUP. All rights reserved.
-          </p>
-          <p className="text-sm text-gray-500 mt-2 sm:mt-0">
-            Made with for better communication
           </p>
         </div>
       </div>
