@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase";
 import { useAuthStore } from "@/store";
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 
 export default function AuthProvider({
   children,
@@ -11,6 +11,7 @@ export default function AuthProvider({
 }) {
   const { setUser, setUserProfile, setLoading } = useAuthStore();
   const supabase = createClient();
+  const [isMounted, setIsMounted] = useState(false);
 
   const fetchUserProfile = useCallback(
     async (userId: string) => {
@@ -36,6 +37,12 @@ export default function AuthProvider({
   );
 
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
+
     // 초기 세션 확인
     const getSession = async () => {
       const {
@@ -71,7 +78,18 @@ export default function AuthProvider({
     });
 
     return () => subscription.unsubscribe();
-  }, [setUser, setUserProfile, setLoading, supabase, fetchUserProfile]);
+  }, [
+    isMounted,
+    setUser,
+    setUserProfile,
+    setLoading,
+    supabase,
+    fetchUserProfile,
+  ]);
+
+  if (!isMounted) {
+    return null;
+  }
 
   return <>{children}</>;
 }

@@ -20,9 +20,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
+    <html lang="ko" suppressHydrationWarning>
       <body
         className={`${inter.variable} font-sans antialiased min-h-screen bg-white flex flex-col`}
+        suppressHydrationWarning
       >
         <AuthProvider>
           <main className="flex-1">{children}</main>
