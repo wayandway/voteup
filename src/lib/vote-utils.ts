@@ -2,6 +2,12 @@
  * 참가자의 고유 토큰 생성 (LocalStorage + IP 기반)
  */
 export const generateParticipantToken = (): string => {
+  if (typeof window === "undefined") {
+    return `participant_${Date.now()}_${Math.random()
+      .toString(36)
+      .substr(2, 9)}`;
+  }
+
   const stored = localStorage.getItem("voteup_participant_token");
   if (stored) {
     return stored;
@@ -17,25 +23,38 @@ export const generateParticipantToken = (): string => {
 /**
  * 투표 가능 여부 확인 (LocalStorage 기반)
  */
-export const canVote = (pollId: string): boolean => {
-  const voted = localStorage.getItem(`voted_${pollId}`);
+export const canVote = (voteId: string): boolean => {
+  if (typeof window === "undefined") {
+    return true;
+  }
+
+  const voted = localStorage.getItem(`voted_${voteId}`);
   return !voted;
 };
 
 /**
  * 투표 완료 표시
  */
-export const markAsVoted = (pollId: string): void => {
-  localStorage.setItem(`voted_${pollId}`, "true");
+export const markAsVoted = (voteId: string): void => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  localStorage.setItem(`voted_${voteId}`, "true");
 };
 
 /**
  * 투표 링크 생성
  */
-export const generatePollLink = (pollId: string): string => {
+export const generateVoteLink = (voteId: string): string => {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  return `${baseUrl}/vote/${pollId}`;
+  return `${baseUrl}/vote/${voteId}`;
 };
+
+/**
+ * 이전 함수들과의 호환성을 위한 별칭
+ */
+export const generatePollLink = generateVoteLink;
 
 /**
  * 시간 포맷팅
