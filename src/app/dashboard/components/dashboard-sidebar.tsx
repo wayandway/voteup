@@ -1,47 +1,34 @@
 import { Archive, Play, CheckCircle, Vote, Calendar } from "lucide-react";
 import Link from "next/link";
 import { formatTime } from "@/lib/vote-utils";
-
-interface Poll {
-  id: string;
-  title: string;
-  is_open: boolean;
-  created_at: string;
-  options?: Option[];
-}
-
-interface Option {
-  id: string;
-  poll_id: string;
-  label: string;
-  count: number;
-}
+import { VoteTypeIcon } from "@/lib/vote-icons";
+import type { Vote as VoteType } from "@/types/vote";
 
 interface DashboardSidebarNewProps {
-  polls: Poll[];
+  votes: VoteType[];
   filter: "all" | "active" | "completed";
   onFilterChange: (filter: "all" | "active" | "completed") => void;
-  selectedPollId?: string;
+  selectedVoteId?: string;
 }
 
 export default function DashboardSidebarNew({
-  polls,
+  votes,
   filter,
   onFilterChange,
-  selectedPollId,
+  selectedVoteId,
 }: DashboardSidebarNewProps) {
-  const getFilteredPolls = () => {
+  const getFilteredVotes = () => {
     switch (filter) {
       case "active":
-        return polls.filter((poll) => poll.is_open);
+        return votes.filter((vote) => vote.is_open);
       case "completed":
-        return polls.filter((poll) => !poll.is_open);
+        return votes.filter((vote) => !vote.is_open);
       default:
-        return polls;
+        return votes;
     }
   };
 
-  const filteredPolls = getFilteredPolls();
+  const filteredVotes = getFilteredVotes();
 
   return (
     <div className="w-80 bg-white shadow-lg min-h-screen p-6">
@@ -67,7 +54,7 @@ export default function DashboardSidebarNew({
               }`}
             >
               <Archive className="h-4 w-4 mr-2" />
-              전체 투표 ({polls.length})
+              전체 투표 ({votes.length})
             </button>
             <button
               onClick={() => onFilterChange("active")}
@@ -78,7 +65,7 @@ export default function DashboardSidebarNew({
               }`}
             >
               <Play className="h-4 w-4 mr-2" />
-              진행 중 ({polls.filter((p) => p.is_open).length})
+              진행 중 ({votes.filter((v) => v.is_open).length})
             </button>
             <button
               onClick={() => onFilterChange("completed")}
@@ -89,7 +76,7 @@ export default function DashboardSidebarNew({
               }`}
             >
               <CheckCircle className="h-4 w-4 mr-2" />
-              완료됨 ({polls.filter((p) => !p.is_open).length})
+              완료됨 ({votes.filter((v) => !v.is_open).length})
             </button>
           </div>
         </div>
@@ -105,48 +92,52 @@ export default function DashboardSidebarNew({
             투표 목록
           </h3>
           <div className="space-y-2 max-h-96 overflow-y-auto">
-            {filteredPolls.length === 0 ? (
+            {filteredVotes.length === 0 ? (
               <div className="text-sm text-gray-500 text-center py-4">
                 투표가 없습니다
               </div>
             ) : (
-              filteredPolls.map((poll) => {
-                const totalVotes =
-                  poll.options?.reduce(
-                    (sum: number, option: Option) => sum + (option.count || 0),
-                    0
-                  ) || 0;
+              filteredVotes.map((vote) => {
+                const totalVotes = vote.participant_count || 0;
 
                 return (
                   <Link
-                    key={poll.id}
-                    href={`/vote/${poll.id}`}
+                    key={vote.id}
+                    href={`/vote/${vote.id}`}
                     className={`block p-3 rounded-lg border transition-all hover:shadow-md ${
-                      selectedPollId === poll.id
+                      selectedVoteId === vote.id
                         ? "bg-blue-50 border-blue-200"
                         : "bg-white border-gray-200 hover:bg-gray-50"
                     }`}
                   >
                     <div className="space-y-2">
                       <div className="flex items-start justify-between">
-                        <h4 className="text-sm font-medium text-gray-900 line-clamp-2">
-                          {poll.title}
-                        </h4>
+                        <div className="flex items-center space-x-2 flex-1">
+                          <div className="w-5 h-5 bg-gray-100 rounded flex items-center justify-center flex-shrink-0">
+                            <VoteTypeIcon
+                              voteType={vote.vote_type}
+                              className="w-3 h-3 text-gray-800"
+                            />
+                          </div>
+                          <h4 className="text-sm font-medium text-gray-900 line-clamp-2">
+                            {vote.title}
+                          </h4>
+                        </div>
                         <div
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            poll.is_open
+                          className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ml-2 ${
+                            vote.is_open
                               ? "bg-green-100 text-green-700"
                               : "bg-gray-100 text-gray-600"
                           }`}
                         >
-                          {poll.is_open ? "진행중" : "완료"}
+                          {vote.is_open ? "진행중" : "완료"}
                         </div>
                       </div>
 
                       <div className="flex items-center justify-between text-xs text-gray-500">
                         <div className="flex items-center space-x-1">
                           <Calendar className="h-3 w-3" />
-                          <span>{formatTime(poll.created_at)}</span>
+                          <span>{formatTime(vote.created_at)}</span>
                         </div>
                         <div className="flex items-center space-x-1">
                           <Vote className="h-3 w-3" />

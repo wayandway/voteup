@@ -7,13 +7,13 @@ interface DashboardHeaderProps {
   userProfile?: {
     username?: string;
   } | null;
-  pollCount: number;
+  voteCount: number;
   filter: "all" | "active" | "completed";
 }
 
 export default function DashboardHeader({
   userProfile,
-  pollCount,
+  voteCount,
   filter,
 }: DashboardHeaderProps) {
   const getFilterTitle = () => {
@@ -53,7 +53,7 @@ export default function DashboardHeader({
           <h2 className="text-2xl font-bold text-gray-900">
             {getFilterTitle()}
           </h2>
-          <p className="text-sm text-gray-600 mt-1">{pollCount}개의 투표</p>
+          <p className="text-sm text-gray-600 mt-1">{voteCount}개의 투표</p>
         </div>
       </div>
     </div>

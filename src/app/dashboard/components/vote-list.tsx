@@ -13,67 +13,57 @@ import {
   Clock,
   Users,
   Vote,
+  Trash2,
 } from "lucide-react";
 import Link from "next/link";
 import { formatTime } from "@/lib/vote-utils";
-
-interface Vote {
-  id: string;
-  title: string;
-  is_open: boolean;
-  created_at: string;
-  options?: Option[];
-}
-
-interface Option {
-  id: string;
-  poll_id: string;
-  label: string;
-  count: number;
-}
+import { VoteTypeIcon } from "@/lib/vote-icons";
+import type { Vote as VoteType } from "@/types/vote";
 
 interface VoteListProps {
-  polls?: Vote[];
+  votes?: VoteType[];
   loading?: boolean;
   filter?: string;
-  onTogglePollStatus?: (pollId: string, currentStatus: boolean) => void;
-  onCopyPollLink?: (pollId: string) => void;
+  onToggleVoteStatus?: (voteId: string, currentStatus: boolean) => void;
+  onCopyVoteLink?: (voteId: string) => void;
+  onDeleteVote?: (voteId: string) => void;
 }
 
 export default function VoteList({
-  polls = [],
+  votes = [],
   loading = false,
   filter = "all",
-  onTogglePollStatus,
-  onCopyPollLink,
+  onToggleVoteStatus,
+  onCopyVoteLink,
+  onDeleteVote,
 }: VoteListProps) {
-  const getFilteredPolls = useCallback(() => {
-    if (!polls || polls.length === 0) return [];
+  const getFilteredVotes = useCallback(() => {
+    if (!votes || votes.length === 0) return [];
 
     switch (filter) {
       case "active":
-        return polls.filter((poll: any) => poll.is_open);
+        return votes.filter((vote: any) => vote.is_open);
       case "closed":
-        return polls.filter((poll: any) => !poll.is_open);
+        return votes.filter((vote: any) => !vote.is_open);
       default:
-        return polls;
+        return votes;
     }
-  }, [polls, filter]);
+  }, [votes, filter]);
 
-  const filteredPolls = getFilteredPolls();
+  const filteredVotes = getFilteredVotes();
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">투표 목록을 불러오는 중...</p>
         </div>
       </div>
     );
   }
 
-  if (filteredPolls.length === 0) {
+  if (filteredVotes.length === 0) {
     return (
       <Card className="border bg-white shadow-lg">
         <CardContent className="py-20">
@@ -111,16 +101,12 @@ export default function VoteList({
 
   return (
     <div className="grid gap-6">
-      {filteredPolls.map((poll) => {
-        const totalVotes =
-          poll.options?.reduce(
-            (sum: number, option: Option) => sum + (option.count || 0),
-            0
-          ) || 0;
+      {filteredVotes.map((vote) => {
+        const totalVotes = vote.participant_count || 0;
 
         return (
           <Card
-            key={poll.id}
+            key={vote.id}
             className="border bg-white shadow-lg hover:shadow-xl transition-all duration-300 group"
           >
             <CardHeader className="pb-4">
@@ -129,17 +115,23 @@ export default function VoteList({
                   <div className="flex items-center space-x-3 mb-2">
                     <div
                       className={`w-3 h-3 rounded-full ${
-                        poll.is_open ? "bg-green-400" : "bg-gray-400"
+                        vote.is_open ? "bg-green-400" : "bg-gray-400"
                       }`}
                     ></div>
+                    <div className="w-6 h-6 bg-gray-100 rounded-md flex items-center justify-center">
+                      <VoteTypeIcon
+                        voteType={vote.vote_type}
+                        className="w-3 h-3 text-gray-800"
+                      />
+                    </div>
                     <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-gray-700 transition-colors">
-                      {poll.title}
+                      {vote.title}
                     </CardTitle>
                   </div>
                   <div className="flex items-center space-x-4 text-sm text-gray-500">
                     <div className="flex items-center space-x-1">
                       <Clock className="h-4 w-4" />
-                      <span>{formatTime(poll.created_at)}</span>
+                      <span>{formatTime(vote.created_at)}</span>
                     </div>
                     <div className="flex items-center space-x-1">
                       <Users className="h-4 w-4" />
@@ -150,12 +142,12 @@ export default function VoteList({
                 <div className="flex items-center space-x-2">
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      poll.is_open
+                      vote.is_open
                         ? "bg-green-100 text-green-800"
                         : "bg-gray-100 text-gray-800"
                     }`}
                   >
-                    {poll.is_open ? "진행 중" : "종료됨"}
+                    {vote.is_open ? "진행 중" : "종료됨"}
                   </span>
                 </div>
               </div>
@@ -166,7 +158,7 @@ export default function VoteList({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => onCopyPollLink?.(poll.id)}
+                    onClick={() => onCopyVoteLink?.(vote.id)}
                     className="border-gray-200 hover:bg-gray-50"
                   >
                     <ExternalLink className="h-4 w-4 mr-2" />
@@ -178,21 +170,38 @@ export default function VoteList({
                     className="border-gray-200 hover:bg-gray-50"
                     asChild
                   >
-                    <Link href={`/vote/${poll.id}`}>
+                    <Link href={`/vote/${vote.id}`}>
                       <BarChart3 className="h-4 w-4 mr-2" />
                       결과 보기
                     </Link>
                   </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (
+                        window.confirm(
+                          "정말로 이 투표를 삭제하시겠습니까?\n삭제된 투표는 복구할 수 없습니다."
+                        )
+                      ) {
+                        onDeleteVote?.(vote.id);
+                      }
+                    }}
+                    className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    삭제
+                  </Button>
                 </div>
                 <Button
-                  variant={poll.is_open ? "destructive" : "default"}
+                  variant={vote.is_open ? "destructive" : "default"}
                   size="sm"
-                  onClick={() => onTogglePollStatus?.(poll.id, poll.is_open)}
+                  onClick={() => onToggleVoteStatus?.(vote.id, vote.is_open)}
                   className={
-                    poll.is_open ? "" : "bg-green-600 hover:bg-green-700"
+                    vote.is_open ? "" : "bg-green-600 hover:bg-green-700"
                   }
                 >
-                  {poll.is_open ? "투표 종료" : "투표 시작"}
+                  {vote.is_open ? "투표 종료" : "투표 시작"}
                 </Button>
               </div>
             </CardContent>
