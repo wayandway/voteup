@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import type { User } from "@supabase/supabase-js";
-import type { Vote, VoteOption, VoteType } from "@/types/vote";
+import type { Vote } from "@/types/vote";
 
 interface UserProfile {
   id: string;

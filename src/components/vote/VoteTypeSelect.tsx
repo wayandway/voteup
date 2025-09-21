@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { VoteType, VOTE_TYPE_CONFIGS } from "@/types/vote";
 import {
   Card,
