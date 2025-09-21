@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { createClient } from "@/lib/supabase";
+import { useState, useEffect } from "react";
+import { VoteService } from "@/lib/vote-service";
 import { useAuthStore } from "@/store";
 import {
   Button,
@@ -13,53 +13,96 @@ import {
   Input,
   Label,
 } from "@/components/ui";
-import { Plus, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useEffect } from "react";
+import {
+  VoteType,
+  VoteOption,
+  CreateVoteData,
+  VOTE_TYPE_CONFIGS,
+} from "@/types/vote";
+import VoteTypeSelect from "@/components/vote/VoteTypeSelect";
+import VoteOptionsEditor from "@/components/vote/VoteOptionsEditor";
+import VoteSettings from "@/components/vote/VoteSettings";
 
-export default function CreatePollPage() {
+export default function CreateVotePage() {
   const { user, loading: authLoading } = useAuthStore();
   const router = useRouter();
-  const supabase = createClient();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [options, setOptions] = useState(["", ""]);
+  const [voteType, setVoteType] = useState<VoteType>("single");
+  const [options, setOptions] = useState<
+    Omit<VoteOption, "id" | "vote_id" | "created_at">[]
+  >([
+    { text: "", display_order: 0 },
+    { text: "", display_order: 1 },
+  ]);
+  const [maxSelections, setMaxSelections] = useState(2);
+  const [scaleMin, setScaleMin] = useState(1);
+  const [scaleMax, setScaleMax] = useState(5);
+  const [scaleStep, setScaleStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // 인증 상태 로딩 중이면 대기
     if (authLoading) {
       return;
     }
 
     if (!user) {
-      router.push("/auth/login");
+      router.push("/auth/signin");
     }
   }, [user, authLoading, router]);
 
-  const addOption = () => {
-    if (options.length < 10) {
-      setOptions([...options, ""]);
+  const handleVoteTypeChange = (newType: VoteType) => {
+    setVoteType(newType);
+
+    const config = VOTE_TYPE_CONFIGS[newType];
+
+    if (newType === "binary") {
+      setOptions([
+        { text: "옵션 1", display_order: 0 },
+        { text: "옵션 2", display_order: 1 },
+      ]);
+    } else if (newType === "scale") {
+      setOptions([{ text: "척도 선택", display_order: 0 }]);
     } else {
-      toast.error("최대 10개의 선택지만 추가할 수 있습니다.");
+      setOptions(
+        Array.from({ length: config.minOptions }, (_, i) => ({
+          text: "",
+          display_order: i,
+        }))
+      );
     }
   };
 
-  const removeOption = (index: number) => {
-    if (options.length > 2) {
-      setOptions(options.filter((_, i) => i !== index));
-    } else {
-      toast.error("최소 2개의 선택지가 필요합니다.");
+  const validateForm = () => {
+    if (!title.trim()) {
+      toast.error("투표 제목을 입력해주세요.");
+      return false;
     }
-  };
 
-  const updateOption = (index: number, value: string) => {
-    const newOptions = [...options];
-    newOptions[index] = value;
-    setOptions(newOptions);
+    const config = VOTE_TYPE_CONFIGS[voteType];
+
+    if (voteType !== "scale") {
+      const validOptions = options.filter(
+        (option) => option.text.trim() !== ""
+      );
+      if (validOptions.length < config.minOptions) {
+        toast.error(`최소 ${config.minOptions}개의 선택지를 입력해주세요.`);
+        return false;
+      }
+    }
+
+    if (voteType === "scale") {
+      if (scaleMin >= scaleMax) {
+        toast.error("최솟값은 최댓값보다 작아야 합니다.");
+        return false;
+      }
+    }
+
+    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -70,63 +113,60 @@ export default function CreatePollPage() {
       return;
     }
 
-    if (title.trim() === "") {
-      toast.error("투표 제목을 입력해주세요.");
-      return;
-    }
-
-    const validOptions = options.filter((option) => option.trim() !== "");
-    if (validOptions.length < 2) {
-      toast.error("최소 2개의 선택지를 입력해주세요.");
+    if (!validateForm()) {
       return;
     }
 
     setLoading(true);
 
     try {
-      // 투표 생성
-      const { data: pollData, error: pollError } = await (supabase as any)
-        .from("polls")
-        .insert({
-          host_id: user.id,
-          title: title.trim(),
-          description: description.trim() || null,
-          is_open: false,
-        })
-        .select()
-        .single();
+      const voteData: CreateVoteData = {
+        title: title.trim(),
+        description: description.trim() || undefined,
+        vote_type: voteType,
+        expires_at: undefined,
+        options: [],
+      };
 
-      if (pollError) {
-        toast.error("투표 생성 실패: " + pollError.message);
-        return;
+      if (voteType !== "scale") {
+        const validOptions = options.filter(
+          (option) => option.text.trim() !== ""
+        );
+        voteData.options = validOptions.map((option, index) => ({
+          text: option.text.trim(),
+          image_alt: option.image_alt || undefined,
+          image_file: (option as any).image_file || undefined, // 파일 객체 포함
+          display_order: index,
+        }));
+      } else {
+        voteData.options = [
+          {
+            text: "척도 선택",
+            display_order: 0,
+          },
+        ];
       }
 
-      // 선택지 생성
-      const optionsData = validOptions.map((option) => ({
-        poll_id: pollData.id,
-        label: option.trim(),
-        count: 0,
-      }));
-
-      const { error: optionsError } = await (supabase as any)
-        .from("options")
-        .insert(optionsData);
-
-      if (optionsError) {
-        toast.error("선택지 생성 실패: " + optionsError.message);
-        return;
+      if (voteType === "multiple") {
+        voteData.max_selections = maxSelections;
+      } else if (voteType === "scale") {
+        voteData.scale_min = scaleMin;
+        voteData.scale_max = scaleMax;
+        voteData.scale_step = scaleStep;
       }
+
+      const vote = await VoteService.createVote(voteData);
 
       toast.success("투표가 성공적으로 생성되었습니다!");
-      router.push("/dashboard");
-    } catch {
+      router.push(`/vote/${vote.id}`);
+    } catch (error) {
+      console.error("투표 생성 오류:", error);
       toast.error("투표 생성 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
     }
   };
 
-  // 인증 상태 로딩 중
   if (authLoading) {
     return (
       <div className="min-h-screen bg-[var(--stone-100)] flex items-center justify-center">
@@ -145,7 +185,7 @@ export default function CreatePollPage() {
   return (
     <div className="min-h-screen bg-[var(--stone-100)] pb-16">
       <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           <div className="mb-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
               새 투표 만들기
@@ -155,15 +195,16 @@ export default function CreatePollPage() {
             </p>
           </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>투표 정보</CardTitle>
-              <CardDescription>
-                투표 제목과 설명, 선택지를 입력해주세요.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* 기본 정보 */}
+            <Card>
+              <CardHeader>
+                <CardTitle>기본 정보</CardTitle>
+                <CardDescription>
+                  투표의 제목과 설명을 입력해주세요.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="title">투표 제목 *</Label>
                   <Input
@@ -184,59 +225,82 @@ export default function CreatePollPage() {
                     onChange={(e) => setDescription(e.target.value)}
                   />
                 </div>
+              </CardContent>
+            </Card>
 
-                <div className="space-y-4">
-                  <Label>선택지 *</Label>
-                  {options.map((option, index) => (
-                    <div key={index} className="flex items-center space-x-2">
-                      <Input
-                        placeholder={`선택지 ${index + 1}`}
-                        value={option}
-                        onChange={(e) => updateOption(index, e.target.value)}
-                        required
-                      />
-                      {options.length > 2 && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                          onClick={() => removeOption(index)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
+            {/* 투표 유형 선택 */}
+            <Card>
+              <CardHeader>
+                <CardTitle>투표 유형</CardTitle>
+                <CardDescription>투표 방식을 선택해주세요.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <VoteTypeSelect
+                  selectedType={voteType}
+                  onTypeChange={handleVoteTypeChange}
+                />
+              </CardContent>
+            </Card>
 
-                  {options.length < 10 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={addOption}
-                      className="w-full"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      선택지 추가
-                    </Button>
-                  )}
-                </div>
+            {/* 선택지 설정 */}
+            {voteType !== "scale" && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>선택지</CardTitle>
+                  <CardDescription>
+                    투표 선택지를 추가하고 편집하세요.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <VoteOptionsEditor
+                    voteType={voteType}
+                    options={options}
+                    onOptionsChange={setOptions}
+                  />
+                </CardContent>
+              </Card>
+            )}
 
-                <div className="flex space-x-4 pt-6">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="flex-1"
-                    asChild
-                  >
-                    <Link href="/dashboard">취소</Link>
-                  </Button>
-                  <Button type="submit" className="flex-1" disabled={loading}>
-                    {loading ? "생성 중..." : "투표 생성"}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
+            {/* 투표 설정 */}
+            {VOTE_TYPE_CONFIGS[voteType].hasSettings && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>상세 설정</CardTitle>
+                  <CardDescription>
+                    투표 유형에 따른 추가 설정을 조정하세요.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <VoteSettings
+                    voteType={voteType}
+                    maxSelections={maxSelections}
+                    scaleMin={scaleMin}
+                    scaleMax={scaleMax}
+                    scaleStep={scaleStep}
+                    onMaxSelectionsChange={setMaxSelections}
+                    onScaleMinChange={setScaleMin}
+                    onScaleMaxChange={setScaleMax}
+                    onScaleStepChange={setScaleStep}
+                  />
+                </CardContent>
+              </Card>
+            )}
+
+            {/* 액션 버튼 */}
+            <div className="flex space-x-4 pt-6">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                asChild
+              >
+                <Link href="/dashboard">취소</Link>
+              </Button>
+              <Button type="submit" className="flex-1" disabled={loading}>
+                {loading ? "생성 중..." : "투표 생성"}
+              </Button>
+            </div>
+          </form>
         </div>
       </div>
     </div>

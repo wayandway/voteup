@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { VoteService } from "@/lib/vote-service";
 import { createClient } from "@/lib/supabase";
 import {
   Button,
@@ -19,151 +20,276 @@ import {
   generateParticipantToken,
 } from "@/lib/vote-utils";
 import { motion, AnimatePresence } from "framer-motion";
-
-interface Poll {
-  id: string;
-  title: string;
-  description?: string;
-  is_open: boolean;
-  created_at: string;
-  options: Option[];
-}
-
-interface Option {
-  id: string;
-  poll_id: string;
-  label: string;
-  count: number;
-}
+import type { Vote as VoteType, VoteResponse } from "@/types/vote";
+import SingleChoiceVote from "@/components/vote/SingleChoiceVote";
+import MultipleChoiceVote from "@/components/vote/MultipleChoiceVote";
+import RankingVote from "@/components/vote/RankingVote";
+import BinaryVote from "@/components/vote/BinaryVote";
+import ScaleVote from "@/components/vote/ScaleVote";
 
 export default function VotePage() {
   const params = useParams();
-  const pollId = params.id as string;
-  const [poll, setPoll] = useState<Poll | null>(null);
+  const voteId = params.id as string;
+  const [vote, setVote] = useState<VoteType | null>(null);
   const [loading, setLoading] = useState(true);
   const [voting, setVoting] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<string>("");
+  const [participantToken] = useState(generateParticipantToken());
+  const [existingResponse, setExistingResponse] = useState<VoteResponse[]>([]);
+  const [voteResults, setVoteResults] = useState<any[]>([]);
+  const [participantCount, setParticipantCount] = useState(0);
+
+  const fetchVoteResults = useCallback(async () => {
+    if (!voteId || !vote) return;
+
+    try {
+      const results = await VoteService.getVoteResults(voteId);
+
+      if (vote.vote_type === "ranking") {
+        const processedResults = vote.options.map((option) => {
+          const optionResponses = results.filter(
+            (r) => r.option_id === option.id
+          );
+          const rankings = optionResponses
+            .map((r) => r.ranking)
+            .filter((r) => r !== null);
+          const avgRanking =
+            rankings.length > 0
+              ? rankings.reduce((sum, rank) => sum + rank, 0) / rankings.length
+              : null;
+
+          return {
+            option_id: option.id,
+            option_text: option.text,
+            response_count: optionResponses.length,
+            avg_ranking: avgRanking,
+          };
+        });
+
+        setVoteResults(processedResults);
+      } else if (vote.vote_type === "scale") {
+        const scaleValues = results
+          .map((r) => r.scale_value)
+          .filter((v) => v !== null);
+        const avgScore =
+          scaleValues.length > 0
+            ? scaleValues.reduce((sum, val) => sum + val, 0) /
+              scaleValues.length
+            : null;
+
+        setVoteResults([
+          {
+            avg_score: avgScore,
+            response_count: scaleValues.length,
+          },
+        ]);
+      } else {
+        const processedResults = vote.options.map((option) => {
+          const optionResponses = results.filter(
+            (r) => r.option_id === option.id
+          );
+
+          return {
+            option_id: option.id,
+            option_text: option.text,
+            response_count: optionResponses.length,
+          };
+        });
+        setVoteResults(processedResults);
+      }
+    } catch (error) {
+      console.error("투표 결과 조회 실패:", error);
+    }
+  }, [voteId, vote]);
+
+  useEffect(() => {
+    if (vote?.id) {
+      fetchVoteResults();
+    }
+  }, [vote?.id, fetchVoteResults]);
 
   const supabase = createClient();
 
-  const fetchPoll = useCallback(async () => {
+  const fetchVote = useCallback(async () => {
+    setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("polls")
-        .select(
-          `
-          *,
-          options (*)
-        `
-        )
-        .eq("id", pollId)
-        .single();
+      const voteData = await VoteService.getVoteById(voteId);
+      setVote(voteData);
+      setParticipantCount(voteData.participant_count || 0);
 
-      if (error) {
-        toast.error("투표를 찾을 수 없습니다.");
+      if (canVote(voteId)) {
+        try {
+          const responses = await VoteService.getParticipantResponse(
+            voteId,
+            participantToken
+          );
+          if (responses.length > 0) {
+            setHasVoted(true);
+            setExistingResponse(responses);
+            markAsVoted(voteId);
+          }
+        } catch (error) {
+          console.error("기존 응답 조회 실패:", error);
+        }
       } else {
-        setPoll(data);
+        setHasVoted(true);
       }
-    } catch {
-      toast.error("투표를 불러오는 중 오류가 발생했습니다.");
+    } catch (error: any) {
+      console.error("투표 조회 실패:", error);
+      toast.error(error.message || "투표를 불러오는데 실패했습니다.");
     } finally {
       setLoading(false);
     }
-  }, [pollId, supabase]);
+  }, [voteId, participantToken]);
 
   useEffect(() => {
-    if (pollId) {
-      fetchPoll();
-      setHasVoted(!canVote(pollId));
+    if (voteId) {
+      fetchVote();
+      setHasVoted(!canVote(voteId));
 
-      // 실시간 업데이트 구독
-      const subscription = supabase
-        .channel(`poll_${pollId}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "UPDATE",
-            schema: "public",
-            table: "options",
-            filter: `poll_id=eq.${pollId}`,
-          },
-          (payload) => {
-            setPoll((currentPoll) => {
-              if (currentPoll) {
-                const updatedOptions = currentPoll.options.map((option) =>
-                  option.id === payload.new.id
-                    ? { ...option, count: payload.new.count }
-                    : option
-                );
-                return { ...currentPoll, options: updatedOptions };
-              }
-              return currentPoll;
-            });
-          }
-        )
-        .subscribe();
+      const subscription = VoteService.subscribeToVoteUpdates(
+        voteId,
+        (payload) => {
+          fetchVote();
+          fetchVoteResults();
+        }
+      );
 
       return () => {
-        subscription.unsubscribe();
+        VoteService.unsubscribeFromVoteUpdates(subscription);
       };
     }
-  }, [pollId, fetchPoll, supabase]);
+  }, [voteId]);
 
-  const handleVote = async (optionId: string) => {
-    if (!poll || !poll.is_open || hasVoted) {
+  const handleVoteSubmit = async (
+    responses: Array<{
+      optionId?: string;
+      scaleValue?: number;
+      ranking?: number;
+    }>
+  ) => {
+    if (!vote || !vote.is_open) {
+      toast.error("투표가 종료되었습니다.");
       return;
     }
 
     setVoting(true);
-    const participantToken = generateParticipantToken();
-    const supabase = createClient();
-
     try {
-      // 투표 기록 추가
-      const { error: responseError } = await (supabase as any)
-        .from("responses")
-        .insert({
-          poll_id: pollId,
-          option_id: optionId,
-          participant_token: participantToken,
-        });
+      await VoteService.submitVoteResponse(voteId, participantToken, responses);
 
-      if (responseError) {
-        toast.error("투표 실패: " + responseError.message);
-        return;
-      }
-
-      // 선택지 카운트 업데이트
-      const selectedOptionData = poll.options.find(
-        (opt) => opt.id === optionId
-      );
-      if (selectedOptionData) {
-        const { error: updateError } = await (supabase as any)
-          .from("options")
-          .update({ count: selectedOptionData.count + 1 })
-          .eq("id", optionId);
-
-        if (updateError) {
-          toast.error("투표 집계 실패");
-          return;
-        }
-      }
-
-      // 로컬 상태 업데이트
-      markAsVoted(pollId);
+      markAsVoted(voteId);
       setHasVoted(true);
-      setSelectedOption(optionId);
       toast.success("투표가 완료되었습니다!");
-    } catch {
-      toast.error("투표 중 오류가 발생했습니다.");
+
+      fetchVote();
+      fetchVoteResults();
+    } catch (error: any) {
+      toast.error(error.message || "투표 중 오류가 발생했습니다.");
     } finally {
       setVoting(false);
     }
   };
 
+  const renderVoteComponent = () => {
+    if (!vote) return null;
+
+    const getSelectedOption = () => {
+      if (existingResponse.length > 0) {
+        return existingResponse[0]?.option_id || "";
+      }
+      return "";
+    };
+
+    const handleSingleSubmit = async (optionId: string) => {
+      await handleVoteSubmit([{ optionId }]);
+    };
+
+    const handleMultipleSubmit = async (optionIds: string[]) => {
+      await handleVoteSubmit(optionIds.map((id) => ({ optionId: id })));
+    };
+
+    const handleRankingSubmit = async (
+      rankings: Array<{ optionId: string; rank: number }>
+    ) => {
+      await handleVoteSubmit(
+        rankings.map((r) => ({ optionId: r.optionId, ranking: r.rank }))
+      );
+    };
+
+    const handleYesNoSubmit = async (optionId: string) => {
+      await handleVoteSubmit([{ optionId }]);
+    };
+
+    const handleScaleSubmit = async (value: number) => {
+      await handleVoteSubmit([{ scaleValue: value }]);
+    };
+
+    switch (vote.vote_type) {
+      case "single":
+        return (
+          <SingleChoiceVote
+            vote={vote}
+            onSubmit={handleSingleSubmit}
+            disabled={!vote.is_open || hasVoted || voting}
+            selectedOption={getSelectedOption()}
+          />
+        );
+      case "multiple":
+        return (
+          <MultipleChoiceVote
+            vote={vote}
+            onSubmit={handleMultipleSubmit}
+            disabled={!vote.is_open || hasVoted || voting}
+            selectedOptions={
+              existingResponse
+                .map((r) => r.option_id)
+                .filter(Boolean) as string[]
+            }
+          />
+        );
+      case "ranking":
+        return (
+          <RankingVote
+            vote={vote}
+            onSubmit={handleRankingSubmit}
+            disabled={!vote.is_open || hasVoted || voting}
+            selectedRankings={existingResponse.map((r) => ({
+              optionId: r.option_id!,
+              rank: r.ranking!,
+            }))}
+          />
+        );
+      case "binary":
+        return (
+          <BinaryVote
+            vote={vote}
+            onSubmit={handleYesNoSubmit}
+            disabled={!vote.is_open || hasVoted || voting}
+            selectedOption={getSelectedOption()}
+          />
+        );
+      case "scale":
+        return (
+          <ScaleVote
+            vote={vote}
+            onSubmit={handleScaleSubmit}
+            disabled={!vote.is_open || hasVoted || voting}
+            selectedValue={existingResponse[0]?.scale_value}
+          />
+        );
+      default:
+        return <div>지원하지 않는 투표 유형입니다.</div>;
+    }
+  };
+
   const getTotalVotes = () => {
-    return poll?.options.reduce((sum, option) => sum + option.count, 0) || 0;
+    if (vote?.vote_type === "scale") {
+      return voteResults[0]?.response_count || 0;
+    }
+    return voteResults.reduce(
+      (sum, result) => sum + (result.response_count || 0),
+      0
+    );
   };
 
   const getPercentage = (count: number) => {
@@ -182,7 +308,7 @@ export default function VotePage() {
     );
   }
 
-  if (!poll) {
+  if (!vote) {
     return (
       <div className="min-h-screen bg-[var(--stone-100)] flex items-center justify-center">
         <Card className="w-full max-w-md text-center">
@@ -206,33 +332,33 @@ export default function VotePage() {
         <div className="max-w-2xl mx-auto">
           <Card className="mb-6">
             <CardHeader className="text-center">
-              <CardTitle className="text-2xl">{poll.title}</CardTitle>
-              {poll.description && (
+              <CardTitle className="text-2xl">{vote.title}</CardTitle>
+              {vote.description && (
                 <CardDescription className="text-base">
-                  {poll.description}
+                  {vote.description}
                 </CardDescription>
               )}
 
               <div className="flex items-center justify-center space-x-6 pt-4 text-sm text-gray-500">
                 <span className="flex items-center">
                   <Users className="h-4 w-4 mr-1" />
-                  {getTotalVotes()} 참가자
+                  {participantCount}명 참여
                 </span>
                 <span
                   className={`flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                    poll.is_open
+                    vote.is_open
                       ? "bg-green-100 text-green-800"
                       : "bg-red-100 text-red-800"
                   }`}
                 >
                   <Clock className="h-3 w-3 mr-1" />
-                  {poll.is_open ? "투표 진행 중" : "투표 종료"}
+                  {vote.is_open ? "투표 진행 중" : "투표 종료"}
                 </span>
               </div>
             </CardHeader>
           </Card>
 
-          {!poll.is_open ? (
+          {!vote.is_open ? (
             <Card>
               <CardContent className="text-center py-8">
                 <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -261,24 +387,18 @@ export default function VotePage() {
               <CardHeader>
                 <CardTitle>투표해주세요</CardTitle>
                 <CardDescription>
-                  하나의 선택지를 선택하세요. 투표는 한 번만 가능합니다.
+                  {vote.vote_type === "single" && "하나의 선택지를 선택하세요."}
+                  {vote.vote_type === "multiple" &&
+                    `최대 ${vote.max_selections}개까지 선택할 수 있습니다.`}
+                  {vote.vote_type === "ranking" &&
+                    "선택지를 순서대로 정렬해주세요."}
+                  {vote.vote_type === "binary" &&
+                    "찬성 또는 반대를 선택해주세요."}
+                  {vote.vote_type === "scale" &&
+                    `${vote.scale_min}점부터 ${vote.scale_max}점까지 평가해주세요.`}
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {poll.options.map((option) => (
-                    <Button
-                      key={option.id}
-                      variant="outline"
-                      className="w-full h-auto p-4 text-left justify-start hover:bg-blue-50"
-                      onClick={() => handleVote(option.id)}
-                      disabled={voting}
-                    >
-                      <span className="text-base">{option.label}</span>
-                    </Button>
-                  ))}
-                </div>
-              </CardContent>
+              <CardContent>{renderVoteComponent()}</CardContent>
             </Card>
           )}
 
@@ -293,39 +413,94 @@ export default function VotePage() {
             <CardContent>
               <div className="space-y-4">
                 <AnimatePresence>
-                  {poll.options.map((option) => {
-                    const percentage = getPercentage(option.count);
-                    const isSelected = selectedOption === option.id;
+                  {vote.vote_type === "scale" ? (
+                    <div className="text-center p-6">
+                      <div className="text-3xl font-bold text-blue-600 mb-2">
+                        {voteResults.length > 0
+                          ? voteResults[0]?.avg_score?.toFixed(1) || "0.0"
+                          : "0.0"}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        평균 점수 ({vote.scale_min} - {vote.scale_max})
+                      </div>
+                    </div>
+                  ) : vote.vote_type === "ranking" ? (
+                    voteResults
+                      .sort(
+                        (a, b) =>
+                          (a.avg_ranking || 999) - (b.avg_ranking || 999)
+                      )
+                      .map((result, index) => (
+                        <motion.div
+                          key={result.option_id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="p-4 rounded-lg border border-gray-200"
+                        >
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center space-x-3">
+                              <span className="text-2xl font-bold text-blue-600">
+                                #{index + 1}
+                              </span>
+                              <span className="font-medium">
+                                {result.option_text}
+                              </span>
+                            </div>
+                            <span className="text-sm text-gray-600">
+                              평균 순위:{" "}
+                              {result.avg_ranking
+                                ? result.avg_ranking.toFixed(1)
+                                : result.response_count > 0
+                                ? "순위 없음"
+                                : "투표 없음"}
+                            </span>
+                          </div>
+                        </motion.div>
+                      ))
+                  ) : (
+                    voteResults.map((result) => {
+                      const percentage =
+                        getTotalVotes() > 0
+                          ? Math.round(
+                              (result.response_count / getTotalVotes()) * 100
+                            )
+                          : 0;
 
-                    return (
-                      <motion.div
-                        key={option.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        className={`p-4 rounded-lg border ${
-                          isSelected
-                            ? "border-blue-500 bg-blue-50"
-                            : "border-gray-200"
-                        }`}
-                      >
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="font-medium">{option.label}</span>
-                          <span className="text-sm text-gray-600">
-                            {option.count}표 ({percentage}%)
-                          </span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <motion.div
-                            className="bg-blue-600 h-2 rounded-full"
-                            initial={{ width: 0 }}
-                            animate={{ width: `${percentage}%` }}
-                            transition={{ duration: 0.5, ease: "easeOut" }}
-                          />
-                        </div>
-                      </motion.div>
-                    );
-                  })}
+                      return (
+                        <motion.div
+                          key={result.option_id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -20 }}
+                          className="p-4 rounded-lg border border-gray-200"
+                        >
+                          <div className="flex justify-between items-center mb-2">
+                            <div className="flex items-center space-x-2">
+                              <span className="font-medium">
+                                {result.option_text}
+                              </span>
+                              {result.image_url && (
+                                <span className="text-xs text-gray-500">
+                                  [이미지]
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-sm text-gray-600">
+                              {result.response_count}표 ({percentage}%)
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <motion.div
+                              className="bg-blue-600 h-2 rounded-full"
+                              initial={{ width: 0 }}
+                              animate={{ width: `${percentage}%` }}
+                              transition={{ duration: 0.5, ease: "easeOut" }}
+                            />
+                          </div>
+                        </motion.div>
+                      );
+                    })
+                  )}
                 </AnimatePresence>
               </div>
             </CardContent>
