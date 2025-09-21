@@ -2,9 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { VoteService } from "@/lib/vote-service";
-import { createClient } from "@/lib/supabase";
 import {
-  Button,
   Card,
   CardContent,
   CardDescription,
@@ -43,19 +41,19 @@ export default function VotePage() {
     if (!voteId || !vote) return;
 
     try {
-      const results = await VoteService.getVoteResults(voteId);
+      const results: any[] = await VoteService.getVoteResults(voteId);
 
       if (vote.vote_type === "ranking") {
         const processedResults = vote.options.map((option) => {
           const optionResponses = results.filter(
-            (r) => r.option_id === option.id
+            (r: any) => r.option_id === option.id
           );
           const rankings = optionResponses
-            .map((r) => r.ranking)
-            .filter((r) => r !== null);
+            .map((r: any) => r.ranking)
+            .filter((r: any) => r !== null);
           const avgRanking =
             rankings.length > 0
-              ? rankings.reduce((sum, rank) => sum + rank, 0) / rankings.length
+              ? rankings.reduce((sum: number, rank: number) => sum + rank, 0) / rankings.length
               : null;
 
           return {
@@ -69,11 +67,11 @@ export default function VotePage() {
         setVoteResults(processedResults);
       } else if (vote.vote_type === "scale") {
         const scaleValues = results
-          .map((r) => r.scale_value)
-          .filter((v) => v !== null);
+          .map((r: any) => r.scale_value)
+          .filter((v: any) => v !== null);
         const avgScore =
           scaleValues.length > 0
-            ? scaleValues.reduce((sum, val) => sum + val, 0) /
+            ? scaleValues.reduce((sum: number, val: number) => sum + val, 0) /
               scaleValues.length
             : null;
 
@@ -86,7 +84,7 @@ export default function VotePage() {
       } else {
         const processedResults = vote.options.map((option) => {
           const optionResponses = results.filter(
-            (r) => r.option_id === option.id
+            (r: any) => r.option_id === option.id
           );
 
           return {
@@ -107,8 +105,6 @@ export default function VotePage() {
       fetchVoteResults();
     }
   }, [vote?.id, fetchVoteResults]);
-
-  const supabase = createClient();
 
   const fetchVote = useCallback(async () => {
     setLoading(true);
@@ -149,7 +145,7 @@ export default function VotePage() {
 
       const subscription = VoteService.subscribeToVoteUpdates(
         voteId,
-        (payload) => {
+        () => {
           fetchVote();
           fetchVoteResults();
         }
@@ -159,7 +155,7 @@ export default function VotePage() {
         VoteService.unsubscribeFromVoteUpdates(subscription);
       };
     }
-  }, [voteId]);
+  }, [voteId, fetchVote, fetchVoteResults]);
 
   const handleVoteSubmit = async (
     responses: Array<{
@@ -290,11 +286,6 @@ export default function VotePage() {
       (sum, result) => sum + (result.response_count || 0),
       0
     );
-  };
-
-  const getPercentage = (count: number) => {
-    const total = getTotalVotes();
-    return total > 0 ? Math.round((count / total) * 100) : 0;
   };
 
   if (loading) {
