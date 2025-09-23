@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui";
 import AuthProvider from "@/components/providers/auth-provider";
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -42,6 +43,7 @@ export default function RootLayout({
         className={`${inter.variable} font-sans antialiased min-h-screen bg-white flex flex-col`}
         suppressHydrationWarning
       >
+        <Analytics />
         <AuthProvider>
           <main className="flex-1">{children}</main>
           <Toaster />
