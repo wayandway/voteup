@@ -48,6 +48,7 @@ export default function VotePage() {
   const [voteResults, setVoteResults] = useState<any[]>([]);
   const [participantCount, setParticipantCount] = useState(0);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const fetchVoteResults = useCallback(
     async (voteData?: VoteType | null) => {
       const currentVote = voteData || vote;
@@ -182,6 +183,10 @@ export default function VotePage() {
   ) => {
     if (!vote || !vote.is_open) {
       toast.error("투표가 종료되었습니다.");
+      return;
+    }
+    if (!participantToken) {
+      toast.error("참여 토큰이 없습니다.");
       return;
     }
 
