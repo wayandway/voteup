@@ -32,81 +32,100 @@ export default function VotePage() {
   const [loading, setLoading] = useState(true);
   const [voting, setVoting] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
-  const [participantToken] = useState(generateParticipantToken());
+  const [participantToken, setParticipantToken] = useState<string | null>(null);
+
+  // participantToken을 voteId별로 localStorage에 저장 및 재사용
+  useEffect(() => {
+    if (!voteId) return;
+    let token = localStorage.getItem(`participantToken:${voteId}`);
+    if (!token) {
+      token = generateParticipantToken();
+      localStorage.setItem(`participantToken:${voteId}`, token);
+    }
+    setParticipantToken(token);
+  }, [voteId]);
   const [existingResponse, setExistingResponse] = useState<VoteResponse[]>([]);
   const [voteResults, setVoteResults] = useState<any[]>([]);
   const [participantCount, setParticipantCount] = useState(0);
 
-  const fetchVoteResults = useCallback(async () => {
-    if (!voteId || !vote) return;
+  const fetchVoteResults = useCallback(
+    async (voteData?: VoteType | null) => {
+      const currentVote = voteData || vote;
+      if (!voteId || !currentVote) return;
 
-    try {
-      const results: any[] = await VoteService.getVoteResults(voteId);
+      try {
+        const results: any[] = await VoteService.getVoteResults(voteId);
 
-      if (vote.vote_type === "ranking") {
-        const processedResults = vote.options.map((option) => {
-          const optionResponses = results.filter(
-            (r: any) => r.option_id === option.id
-          );
-          const rankings = optionResponses
-            .map((r: any) => r.ranking)
-            .filter((r: any) => r !== null);
-          const avgRanking =
-            rankings.length > 0
-              ? rankings.reduce((sum: number, rank: number) => sum + rank, 0) / rankings.length
+        if (currentVote.vote_type === "ranking") {
+          const processedResults = currentVote.options.map((option) => {
+            const optionResponses = results.filter(
+              (r: any) => r.option_id === option.id
+            );
+            const rankings = optionResponses
+              .map((r: any) => r.ranking)
+              .filter((r: any) => r !== null);
+            const avgRanking =
+              rankings.length > 0
+                ? rankings.reduce(
+                    (sum: number, rank: number) => sum + rank,
+                    0
+                  ) / rankings.length
+                : null;
+
+            return {
+              option_id: option.id,
+              option_text: option.text,
+              response_count: optionResponses.length,
+              avg_ranking: avgRanking,
+            };
+          });
+
+          setVoteResults(processedResults);
+        } else if (currentVote.vote_type === "scale") {
+          const scaleValues = results
+            .map((r: any) => r.scale_value)
+            .filter((v: any) => v !== null);
+          const avgScore =
+            scaleValues.length > 0
+              ? scaleValues.reduce((sum: number, val: number) => sum + val, 0) /
+                scaleValues.length
               : null;
 
-          return {
-            option_id: option.id,
-            option_text: option.text,
-            response_count: optionResponses.length,
-            avg_ranking: avgRanking,
-          };
-        });
+          setVoteResults([
+            {
+              avg_score: avgScore,
+              response_count: scaleValues.length,
+            },
+          ]);
+        } else {
+          const processedResults = currentVote.options.map((option) => {
+            const optionResponses = results.filter(
+              (r: any) => r.option_id === option.id
+            );
 
-        setVoteResults(processedResults);
-      } else if (vote.vote_type === "scale") {
-        const scaleValues = results
-          .map((r: any) => r.scale_value)
-          .filter((v: any) => v !== null);
-        const avgScore =
-          scaleValues.length > 0
-            ? scaleValues.reduce((sum: number, val: number) => sum + val, 0) /
-              scaleValues.length
-            : null;
-
-        setVoteResults([
-          {
-            avg_score: avgScore,
-            response_count: scaleValues.length,
-          },
-        ]);
-      } else {
-        const processedResults = vote.options.map((option) => {
-          const optionResponses = results.filter(
-            (r: any) => r.option_id === option.id
-          );
-
-          return {
-            option_id: option.id,
-            option_text: option.text,
-            response_count: optionResponses.length,
-          };
-        });
-        setVoteResults(processedResults);
+            return {
+              option_id: option.id,
+              option_text: option.text,
+              response_count: optionResponses.length,
+            };
+          });
+          setVoteResults(processedResults);
+        }
+      } catch (error) {
+        console.error("투표 결과 조회 실패:", error);
       }
-    } catch (error) {
-      console.error("투표 결과 조회 실패:", error);
-    }
-  }, [voteId, vote]);
+    },
+    [voteId]
+  );
 
   useEffect(() => {
     if (vote?.id) {
       fetchVoteResults();
     }
-  }, [vote?.id, fetchVoteResults]);
+  }, [vote?.id]);
 
   const fetchVote = useCallback(async () => {
+    if (!participantToken) return;
     setLoading(true);
     try {
       const voteData = await VoteService.getVoteById(voteId);
@@ -139,23 +158,20 @@ export default function VotePage() {
   }, [voteId, participantToken]);
 
   useEffect(() => {
-    if (voteId) {
+    if (voteId && participantToken) {
       fetchVote();
       setHasVoted(!canVote(voteId));
 
-      const subscription = VoteService.subscribeToVoteUpdates(
-        voteId,
-        () => {
-          fetchVote();
-          fetchVoteResults();
-        }
-      );
+      // 실시간 구독 콜백에서는 fetchVoteResults만 호출 (상태 루프 차단)
+      const subscription = VoteService.subscribeToVoteUpdates(voteId, () => {
+        fetchVoteResults();
+      });
 
       return () => {
         VoteService.unsubscribeFromVoteUpdates(subscription);
       };
     }
-  }, [voteId, fetchVote, fetchVoteResults]);
+  }, [voteId, participantToken]);
 
   const handleVoteSubmit = async (
     responses: Array<{
