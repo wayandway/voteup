@@ -52,8 +52,11 @@ export default function RankingVote({
   };
 
   const handleSubmit = async () => {
-    if (rankings.length === 0 || submitting) return;
-
+    if (submitting) return;
+    if (rankings.length !== vote.options.length) {
+      alert("모든 선택지에 순위를 지정해야 합니다.");
+      return;
+    }
     setSubmitting(true);
     try {
       await onSubmit(rankings);
@@ -137,7 +140,7 @@ export default function RankingVote({
       <div className="flex justify-center pt-4">
         <Button
           onClick={handleSubmit}
-          disabled={rankings.length === 0 || submitting}
+          disabled={rankings.length !== vote.options.length || submitting}
           className="w-full max-w-md"
         >
           {submitting ? (
@@ -146,7 +149,7 @@ export default function RankingVote({
               <span>제출 중...</span>
             </div>
           ) : (
-            `순위 투표 제출 (${rankings.length}개 선택)`
+            `순위 투표 제출 (${rankings.length}/${vote.options.length}개 순위 지정)`
           )}
         </Button>
       </div>
