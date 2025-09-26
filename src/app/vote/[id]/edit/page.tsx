@@ -63,6 +63,10 @@ export default function EditVotePage() {
       toast.error("제목을 입력해주세요.");
       return;
     }
+    if (!vote) {
+      toast.error("투표 정보를 찾을 수 없습니다.");
+      return;
+    }
     if (vote.vote_type !== "scale") {
       if (options.length === 0 || options.some((o) => !o.text.trim())) {
         toast.error("모든 선택지 내용을 입력해주세요.");

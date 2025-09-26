@@ -50,7 +50,7 @@ export default function VoteAnalysisPage() {
       const results = await VoteService.getVoteResults(voteId);
       setVoteResults(results);
     } catch (error) {
-      toast.error("투표 결과를 불러오지 못했습니다.");
+      console.error("투표 결과를 불러오지 못했습니다.", error);
     }
   }, [voteId]);
 
@@ -71,7 +71,7 @@ export default function VoteAnalysisPage() {
 
   useEffect(() => {
     if (vote) fetchVoteResults();
-  }, [vote]);
+  }, [vote, fetchVoteResults]);
 
   if (loading) {
     return (

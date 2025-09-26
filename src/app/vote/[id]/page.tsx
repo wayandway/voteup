@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { VoteService, canVote, markAsVoted, generateParticipantToken } from "@/lib";
+import {
+  VoteService,
+  canVote,
+  markAsVoted,
+  generateParticipantToken,
+} from "@/lib";
 import {
   Card,
   CardContent,
@@ -110,10 +115,10 @@ export default function VotePage() {
           setVoteResults(processedResults);
         }
       } catch (error) {
-        console.error("투표 결과 조회 실패:", error);
+        toast.error("투표 결과를 불러오지 못했습니다.");
       }
     },
-    [voteId]
+    [voteId, vote]
   );
 
   useEffect(() => {
