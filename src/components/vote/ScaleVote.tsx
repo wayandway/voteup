@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Vote } from "@/types/vote";
+import { Vote } from "@/types";
 import { Button, Card, CardContent, Label } from "@/components/ui";
 import { Slider } from "@/components/ui/slider";
 

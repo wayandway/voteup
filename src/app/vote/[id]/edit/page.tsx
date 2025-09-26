@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { VoteService } from "@/lib/vote-service";
+import { VoteService } from "@/lib";
 import { toast } from "sonner";
-import type { Vote as VoteType } from "@/types/vote";
+import type { Vote as VoteType } from "@/types";
 import {
   Card,
   CardHeader,
@@ -15,8 +15,7 @@ import {
   Input,
   Textarea,
 } from "@/components/ui";
-import VoteOptionsEditor from "@/components/vote/VoteOptionsEditor";
-import VoteSettings from "@/components/vote/VoteSettings";
+import { VoteOptionsEditor, VoteSettings } from "@/components/vote";
 
 export default function EditVotePage() {
   const params = useParams();

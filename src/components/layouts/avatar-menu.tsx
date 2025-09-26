@@ -2,7 +2,7 @@
 
 import { Settings, LogOut, Vote, User } from "lucide-react";
 import { useAuthStore } from "@/store";
-import { createClient } from "@/lib/supabase";
+import { createClient } from "@/lib";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Link from "next/link";

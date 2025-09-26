@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { VoteService } from "@/lib/vote-service";
+import { VoteService } from "@/lib";
 import { useAuthStore } from "@/store";
 import {
   Button,
@@ -21,10 +21,12 @@ import {
   VoteOption,
   CreateVoteData,
   VOTE_TYPE_CONFIGS,
-} from "@/types/vote";
-import VoteTypeSelect from "@/components/vote/VoteTypeSelect";
-import VoteOptionsEditor from "@/components/vote/VoteOptionsEditor";
-import VoteSettings from "@/components/vote/VoteSettings";
+} from "@/types";
+import {
+  VoteTypeSelect,
+  VoteOptionsEditor,
+  VoteSettings,
+} from "@/components/vote";
 
 export default function CreateVotePage() {
   const { user, loading: authLoading } = useAuthStore();

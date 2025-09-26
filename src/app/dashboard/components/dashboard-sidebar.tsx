@@ -1,8 +1,7 @@
 import { Archive, Play, CheckCircle, Vote, Calendar } from "lucide-react";
 import Link from "next/link";
-import { formatTime } from "@/lib/vote-utils";
-import { VoteTypeIcon } from "@/lib/vote-icons";
-import type { Vote as VoteType } from "@/types/vote";
+import { formatTime, VoteTypeIcon } from "@/lib";
+import type { Vote as VoteType } from "@/types";
 
 interface DashboardSidebarNewProps {
   votes: VoteType[];

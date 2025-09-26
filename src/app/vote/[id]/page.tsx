@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { VoteService } from "@/lib/vote-service";
+import { VoteService, canVote, markAsVoted, generateParticipantToken } from "@/lib";
 import {
   Card,
   CardContent,
@@ -12,18 +12,15 @@ import {
 import { Vote, Users, Clock, CheckCircle } from "lucide-react";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
-import {
-  canVote,
-  markAsVoted,
-  generateParticipantToken,
-} from "@/lib/vote-utils";
 import { motion, AnimatePresence } from "framer-motion";
-import type { Vote as VoteType, VoteResponse } from "@/types/vote";
-import SingleChoiceVote from "@/components/vote/SingleChoiceVote";
-import MultipleChoiceVote from "@/components/vote/MultipleChoiceVote";
-import RankingVote from "@/components/vote/RankingVote";
-import BinaryVote from "@/components/vote/BinaryVote";
-import ScaleVote from "@/components/vote/ScaleVote";
+import type { Vote as VoteType, VoteResponse } from "@/types";
+import {
+  SingleChoiceVote,
+  MultipleChoiceVote,
+  RankingVote,
+  BinaryVote,
+  ScaleVote,
+} from "@/components/vote";
 
 export default function VotePage() {
   const params = useParams();

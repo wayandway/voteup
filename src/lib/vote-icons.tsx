@@ -5,7 +5,7 @@ import {
   GitBranch,
   Ruler,
 } from "lucide-react";
-import { VoteType } from "@/types/vote";
+import { VoteType } from "@/types";
 
 const iconComponents = {
   single: CircleDot,

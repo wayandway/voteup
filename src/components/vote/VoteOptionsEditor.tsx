@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { VoteType, VoteOption, VOTE_TYPE_CONFIGS } from "@/types/vote";
+import { VoteType, VoteOption, VOTE_TYPE_CONFIGS } from "@/types";
 import { Button, Input, Label } from "@/components/ui";
 import { Plus, X, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";

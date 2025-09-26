@@ -1,6 +1,6 @@
 "use client";
 
-import { VoteType, VOTE_TYPE_CONFIGS } from "@/types/vote";
+import { VoteType, VOTE_TYPE_CONFIGS } from "@/types";
 import { Label, Input } from "@/components/ui";
 
 interface VoteSettingsProps {

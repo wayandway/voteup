@@ -1,18 +1,16 @@
 "use client";
 
 import { useEffect, useCallback, useState } from "react";
-import { VoteService } from "@/lib/vote-service";
-import { createClient } from "@/lib/supabase";
+import { VoteService, createClient, generateVoteLink } from "@/lib";
 import { useAuthStore, useVoteStore } from "@/store";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { generateVoteLink } from "@/lib/vote-utils";
 import { DashboardSidebar, DashboardHeader, VoteList } from "./components";
-import { useIsMobile } from "@/hooks/useIsMobile";
+import { useIsMobile } from "@/hooks";
 import { Button } from "@/components/ui";
 import { Smartphone, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import type { Vote } from "@/types/vote";
+import type { Vote } from "@/types";
 
 export default function DashboardPage() {
   const { user, userProfile, loading: authLoading } = useAuthStore();

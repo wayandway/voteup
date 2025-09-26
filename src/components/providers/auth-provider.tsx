@@ -1,6 +1,6 @@
 "use client";
 
-import { createClient } from "@/lib/supabase";
+import { createClient } from "@/lib";
 import { useAuthStore } from "@/store";
 import { useEffect, useCallback } from "react";
 

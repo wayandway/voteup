@@ -16,9 +16,8 @@ import {
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
-import { formatTime } from "@/lib/vote-utils";
-import { VoteTypeIcon } from "@/lib/vote-icons";
-import type { Vote as VoteType } from "@/types/vote";
+import { formatTime, VoteTypeIcon } from "@/lib";
+import type { Vote as VoteType } from "@/types";
 
 interface VoteListProps {
   votes?: VoteType[];

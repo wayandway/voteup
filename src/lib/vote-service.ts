@@ -3,7 +3,7 @@ import { ImageService } from "./image-service";
 import type {
   Vote,
   CreateVoteData,
-} from "@/types/vote";
+} from "@/types";
 
 export class VoteService {
   private static supabase = createClient();

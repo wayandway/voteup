@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { VoteService } from "@/lib/vote-service";
+import { VoteService } from "@/lib";
 import { useAuthStore } from "@/store";
 import {
   Card,
@@ -13,7 +13,7 @@ import {
 } from "@/components/ui";
 import { toast } from "sonner";
 import { AnimatePresence, motion } from "framer-motion";
-import type { Vote as VoteType } from "@/types/vote";
+import type { Vote as VoteType } from "@/types";
 
 export default function VoteAnalysisPage() {
   const params = useParams();

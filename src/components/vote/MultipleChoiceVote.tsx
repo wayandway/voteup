@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Vote } from "@/types/vote";
+import { Vote } from "@/types";
 import { Button, Card, CardContent } from "@/components/ui";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
