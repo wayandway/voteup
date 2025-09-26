@@ -77,26 +77,6 @@ export default function VoteOptionsEditor({
     ]);
   }
 
-  if (voteType === "scale") {
-    return (
-      <div className="space-y-4">
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            척도 설정
-          </h3>
-          <p className="text-sm text-gray-600">
-            척도 투표는 숫자 범위에서 값을 선택하는 방식입니다.
-          </p>
-        </div>
-        <div className="p-4 bg-blue-50 rounded-lg">
-          <p className="text-sm text-blue-800">
-            척도 범위는 투표 설정에서 조정할 수 있습니다.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
       <div className="mb-4">

@@ -189,6 +189,17 @@ export default function VoteList({
                   <Button
                     variant="outline"
                     size="sm"
+                    className="border-yellow-200 text-yellow-700 hover:bg-yellow-50 hover:border-yellow-300"
+                    asChild
+                  >
+                    <Link href={`/vote/${vote.id}/edit`}>
+                      <span className="h-4 w-4 mr-2">✏️</span>
+                      수정
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => {
                       if (
                         window.confirm(

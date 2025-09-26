@@ -288,6 +288,70 @@ export class VoteService {
       throw new Error(`투표 상태 변경 실패: ${error.message}`);
     }
   }
+
+  static async updateVote(
+    voteId: string,
+    data: { title?: string; description?: string; options?: any[] }
+  ) {
+    const supabase = this.supabase;
+    // 1. 투표 메타데이터 수정
+    const { error: voteError } = await (supabase as any)
+      .from("votes")
+      .update({
+        ...(data.title !== undefined ? { title: data.title } : {}),
+        ...(data.description !== undefined ? { description: data.description } : {}),
+      })
+      .eq("id", voteId);
+    if (voteError) throw new Error(`투표 수정 실패: ${voteError.message}`);
+
+    // 2. 옵션 수정
+    if (data.options) {
+      const { data: existingOptions, error: fetchError } = await (supabase as any)
+        .from("options")
+        .select("id")
+        .eq("vote_id", voteId);
+      if (fetchError) throw new Error(`옵션 조회 실패: ${fetchError.message}`);
+      const existingIds = (existingOptions || []).map((o: any) => o.id);
+
+      // 2-1. 삭제된 옵션 제거
+      const keepIds = data.options.filter((o) => o.id).map((o) => o.id);
+      const deleteIds = existingIds.filter((id: string) => !keepIds.includes(id));
+      if (deleteIds.length > 0) {
+        const { error: deleteError } = await (supabase as any)
+          .from("options")
+          .delete()
+          .in("id", deleteIds);
+        if (deleteError) throw new Error(`옵션 삭제 실패: ${deleteError.message}`);
+      }
+
+      // 2-2. 옵션 upsert (id 있으면 update, 없으면 insert)
+      for (let i = 0; i < data.options.length; i++) {
+        const opt = data.options[i];
+        const upsertData: any = {
+          vote_id: voteId,
+          text: opt.text,
+          image_url: opt.image_url || null,
+          image_alt: opt.image_alt || null,
+          display_order: i,
+        };
+        if (opt.id) upsertData.id = opt.id;
+
+        // 이미지 업로드 처리 (선택)
+        if (opt.image_file) {
+          try {
+            upsertData.image_url = await ImageService.uploadImage(opt.image_file, voteId, i);
+          } catch {
+            upsertData.image_url = null;
+          }
+        }
+
+        const { error: upsertError } = await (supabase as any)
+          .from("options")
+          .upsert(upsertData, { onConflict: "id" });
+        if (upsertError) throw new Error(`옵션 저장 실패: ${upsertError.message}`);
+      }
+    }
+  }
 }
 
 export const voteService = VoteService;
