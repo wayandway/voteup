@@ -85,6 +85,7 @@ export default function CreateVotePage() {
 
     const config = VOTE_TYPE_CONFIGS[voteType];
 
+    // 옵션 개수 및 텍스트 검사 (scale 제외)
     if (voteType !== "scale") {
       const validOptions = options.filter(
         (option) => option.text.trim() !== ""
@@ -93,11 +94,45 @@ export default function CreateVotePage() {
         toast.error(`최소 ${config.minOptions}개의 선택지를 입력해주세요.`);
         return false;
       }
+      if (validOptions.length > config.maxOptions) {
+        toast.error(
+          `최대 ${config.maxOptions}개의 선택지만 입력할 수 있습니다.`
+        );
+        return false;
+      }
+      if (voteType === "binary" && validOptions.length !== 2) {
+        toast.error("이분 투표는 반드시 2개의 선택지가 필요합니다.");
+        return false;
+      }
+      // 선택지 텍스트 중복 검사
+      const texts = validOptions.map((option) => option.text.trim());
+      const uniqueTexts = new Set(texts);
+      if (uniqueTexts.size !== texts.length) {
+        toast.error("선택지 내용은 모두 달라야 합니다.");
+        return false;
+      }
     }
 
+    // 복수 선택 투표: maxSelections 검사
+    if (voteType === "multiple") {
+      if (maxSelections < 2) {
+        toast.error("복수 선택 투표는 최소 2개 이상 선택할 수 있어야 합니다.");
+        return false;
+      }
+      if (maxSelections > options.length) {
+        toast.error("최대 선택 개수는 선택지 개수 이하여야 합니다.");
+        return false;
+      }
+    }
+
+    // 척도 투표: 범위 및 스텝 검사
     if (voteType === "scale") {
       if (scaleMin >= scaleMax) {
         toast.error("최솟값은 최댓값보다 작아야 합니다.");
+        return false;
+      }
+      if (scaleStep <= 0) {
+        toast.error("척도 단위는 1 이상이어야 합니다.");
         return false;
       }
     }
