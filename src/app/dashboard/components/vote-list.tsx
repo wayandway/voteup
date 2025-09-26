@@ -172,7 +172,18 @@ export default function VoteList({
                   >
                     <Link href={`/vote/${vote.id}`}>
                       <BarChart3 className="h-4 w-4 mr-2" />
-                      결과 보기
+                      투표 현황
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
+                    asChild
+                  >
+                    <Link href={`/vote/${vote.id}/analysis`}>
+                      <BarChart3 className="h-4 w-4 mr-2" />
+                      결과 분석
                     </Link>
                   </Button>
                   <Button
