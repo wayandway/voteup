@@ -86,9 +86,9 @@ export default function MultipleChoiceVote({
                       <Image
                         src={option.image_url}
                         alt={option.image_alt || option.text}
-                        width={48}
-                        height={48}
-                        className="object-cover rounded-lg"
+                        width={80}
+                        height={80}
+                        className="object-cover rounded-lg border"
                       />
                     )}
                     <div>

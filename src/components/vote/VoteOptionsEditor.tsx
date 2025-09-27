@@ -153,6 +153,7 @@ export default function VoteOptionsEditor({
                         width={48}
                         height={48}
                         className="object-cover rounded border"
+                        unoptimized
                         onError={() => {
                           toast.error("이미지를 불러올 수 없습니다.");
                         }}
