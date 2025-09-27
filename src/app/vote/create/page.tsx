@@ -3,16 +3,7 @@
 import { useState, useEffect } from "react";
 import { VoteService } from "@/lib";
 import { useAuthStore } from "@/store";
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Input,
-  Label,
-} from "@/components/ui";
+import { Button, Card, CardContent, Input, Label } from "@/components/ui";
 import AvatarMenu from "@/components/layouts/avatar-menu";
 import Link from "next/link";
 import { useRouter } from "next/navigation";

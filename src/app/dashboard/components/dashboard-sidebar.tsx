@@ -1,34 +1,18 @@
 import { Archive, Play, CheckCircle, Vote, Calendar } from "lucide-react";
 import Link from "next/link";
-import { formatTime, VoteTypeIcon } from "@/lib";
 import type { Vote as VoteType } from "@/types";
 
 interface DashboardSidebarNewProps {
   votes: VoteType[];
-  filter: "all" | "active" | "completed";
-  onFilterChange: (filter: "all" | "active" | "completed") => void;
-  selectedVoteId?: string;
+  filter: "all" | "active" | "completed" | "overview";
+  onFilterChange: (filter: "all" | "active" | "completed" | "overview") => void;
 }
 
 export default function DashboardSidebarNew({
   votes,
   filter,
   onFilterChange,
-  selectedVoteId,
 }: DashboardSidebarNewProps) {
-  const getFilteredVotes = () => {
-    switch (filter) {
-      case "active":
-        return votes.filter((vote) => vote.is_open);
-      case "completed":
-        return votes.filter((vote) => !vote.is_open);
-      default:
-        return votes;
-    }
-  };
-
-  const filteredVotes = getFilteredVotes();
-
   return (
     <div className="w-50 bg-[var(--stone-100)] min-h-screen p-6">
       <div className="sticky top-6">

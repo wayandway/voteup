@@ -1,21 +1,6 @@
-import { Button } from "@/components/ui";
-import { Plus } from "lucide-react";
-import Link from "next/link";
 import AvatarMenu from "@/components/layouts/avatar-menu";
 
-interface DashboardHeaderProps {
-  userProfile?: {
-    username?: string;
-  } | null;
-  voteCount: number;
-  filter: "all" | "active" | "completed";
-}
-
-export default function DashboardHeader({
-  userProfile,
-  voteCount,
-  filter,
-}: DashboardHeaderProps) {
+export default function DashboardHeader({}: any) {
   return (
     <div className="sticky top-0 z-10 bg-white px-8 py-4 border-b border-gray-200">
       <div className="flex items-center justify-between gap-4">

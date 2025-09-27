@@ -1,11 +1,5 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Button,
-} from "@/components/ui";
-import { BarChart3, Plus, Users, CheckCircle, Play } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
+import { BarChart3, CheckCircle, Play } from "lucide-react";
 import Link from "next/link";
 import type { Vote } from "@/types";
 

@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { DashboardSidebar, DashboardHeader, VoteList } from "./components";
 import OverviewCards from "./components/overview-cards";
-import OverviewGraph from "./components/overview-graph";
 import OverviewAreaChart from "./components/overview-area-chart";
 import { useIsMobile } from "@/hooks";
 import { Button } from "@/components/ui";
@@ -217,13 +216,15 @@ export default function DashboardPage() {
                   0
                 )}
                 recentVotes={votes.slice(0, 5)}
-                popularVote={votes.reduce(
-                  (max, v) =>
-                    v.participant_count > (max?.participant_count || 0)
-                      ? v
-                      : max,
-                  undefined
-                )}
+                popularVote={
+                  votes.reduce(
+                    (max, v) =>
+                      (v.participant_count || 0) > (max.participant_count || 0)
+                        ? v
+                        : max,
+                    votes[0]
+                  ) || undefined
+                }
               />
               <div className="mt-8">
                 <h2 className="text-lg font-semibold mb-2">
