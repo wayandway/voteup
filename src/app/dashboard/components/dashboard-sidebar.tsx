@@ -93,12 +93,12 @@ export default function DashboardSidebarNew({
       </div>
       {/* 사이드바 하단 메뉴 */}
       <div className="absolute bottom-0 left-0 w-50 p-6 pb-8 flex flex-col gap-3 bg-[var(--stone-100)]">
-        <Link href="/dashboard/new" className="w-full">
-            <button className="w-full flex items-center px-3 py-2 rounded-lg text-sm transition-colors text-gray-800 hover:text-black cursor-pointer">
-              <Vote className="h-4 w-4 mr-2" /> 투표 생성
+        <Link href="/vote/create" className="w-full">
+          <button className="w-full flex items-center px-3 py-2 rounded-lg text-sm transition-colors text-gray-800 hover:text-black cursor-pointer">
+            <Vote className="h-4 w-4 mr-2" /> 투표 생성
           </button>
         </Link>
-        <Link href="/dashboard/settings" className="w-full">
+        <Link href="/setting" className="w-full">
           <button className="w-full flex items-center px-3 py-2 rounded-lg text-sm transition-colors text-gray-800 hover:text-black cursor-pointer">
             <Archive className="h-4 w-4 mr-2" /> 설정
           </button>
