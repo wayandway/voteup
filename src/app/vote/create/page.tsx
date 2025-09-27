@@ -13,6 +13,7 @@ import {
   Input,
   Label,
 } from "@/components/ui";
+import AvatarMenu from "@/components/layouts/avatar-menu";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -223,24 +224,40 @@ export default function CreateVotePage() {
     <div className="min-h-screen bg-[var(--stone-100)] pb-16">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
+          <div className="flex items-center justify-between mb-8">
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2 px-2 py-1 rounded hover:bg-gray-100"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-6 w-6 text-gray-700"
+              >
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+              <span className="text-base text-gray-700 font-medium">
+                돌아가기
+              </span>
+            </Link>
+            <div className="flex-shrink-0">
+              <AvatarMenu />
+            </div>
+          </div>
           <div className="mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              새 투표 만들기
-            </h2>
-            <p className="text-gray-600">
-              참가자들이 참여할 수 있는 투표를 생성하세요.
-            </p>
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">투표 생성</h2>
+            <p className="text-gray-600">새로운 투표를 생성하세요.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* 기본 정보 */}
             <Card>
-              <CardHeader>
-                <CardTitle>기본 정보</CardTitle>
-                <CardDescription>
-                  투표의 제목과 설명을 입력해주세요.
-                </CardDescription>
-              </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="title">투표 제목 *</Label>
@@ -254,7 +271,7 @@ export default function CreateVotePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description">설명 (선택사항)</Label>
+                  <Label htmlFor="description">설명 (선택)</Label>
                   <Input
                     id="description"
                     placeholder="투표에 대한 추가 설명을 입력하세요"
@@ -267,10 +284,6 @@ export default function CreateVotePage() {
 
             {/* 투표 유형 선택 */}
             <Card>
-              <CardHeader>
-                <CardTitle>투표 유형</CardTitle>
-                <CardDescription>투표 방식을 선택해주세요.</CardDescription>
-              </CardHeader>
               <CardContent>
                 <VoteTypeSelect
                   selectedType={voteType}
@@ -282,12 +295,6 @@ export default function CreateVotePage() {
             {/* 선택지 설정 */}
             {voteType !== "scale" && (
               <Card>
-                <CardHeader>
-                  <CardTitle>선택지</CardTitle>
-                  <CardDescription>
-                    투표 선택지를 추가하고 편집하세요.
-                  </CardDescription>
-                </CardHeader>
                 <CardContent>
                   <VoteOptionsEditor
                     voteType={voteType}
@@ -301,12 +308,6 @@ export default function CreateVotePage() {
             {/* 투표 설정 */}
             {VOTE_TYPE_CONFIGS[voteType].hasSettings && (
               <Card>
-                <CardHeader>
-                  <CardTitle>상세 설정</CardTitle>
-                  <CardDescription>
-                    투표 유형에 따른 추가 설정을 조정하세요.
-                  </CardDescription>
-                </CardHeader>
                 <CardContent>
                   <VoteSettings
                     voteType={voteType}
@@ -329,12 +330,24 @@ export default function CreateVotePage() {
                 type="button"
                 variant="outline"
                 className="flex-1"
-                asChild
+                onClick={() => {
+                  setTitle("");
+                  setDescription("");
+                  setVoteType("single");
+                  setOptions([
+                    { text: "", display_order: 0 },
+                    { text: "", display_order: 1 },
+                  ]);
+                  setMaxSelections(2);
+                  setScaleMin(1);
+                  setScaleMax(5);
+                  setScaleStep(1);
+                }}
               >
-                <Link href="/dashboard">취소</Link>
+                초기화
               </Button>
               <Button type="submit" className="flex-1" disabled={loading}>
-                {loading ? "생성 중..." : "투표 생성"}
+                {loading ? "생성 중..." : "만들기"}
               </Button>
             </div>
           </form>

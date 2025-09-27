@@ -13,6 +13,8 @@ import {
   Input,
   Label,
 } from "@/components/ui";
+import Link from "next/link";
+import AvatarMenu from "@/components/layouts/avatar-menu";
 import { User, Save } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -102,6 +104,32 @@ export default function SettingPage() {
     <div className="min-h-screen bg-[var(--stone-100)] pb-16">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
+          <div className="flex items-center justify-between mb-8">
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2 px-2 py-1 rounded hover:bg-gray-100"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-6 w-6 text-gray-700"
+              >
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+              <span className="text-base text-gray-700 font-medium">
+                돌아가기
+              </span>
+            </Link>
+            <div className="flex-shrink-0">
+              <AvatarMenu />
+            </div>
+          </div>
           <div className="mb-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
               프로필 설정
