@@ -172,7 +172,16 @@ export default function DashboardPage() {
           />
 
           <VoteList
-            votes={votes}
+            votes={(() => {
+              switch (filter) {
+                case "active":
+                  return votes.filter((vote) => vote.is_open);
+                case "completed":
+                  return votes.filter((vote) => !vote.is_open);
+                default:
+                  return votes;
+              }
+            })()}
             loading={loading}
             filter={filter}
             onToggleVoteStatus={toggleVoteStatus}
