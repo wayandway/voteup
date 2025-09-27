@@ -50,76 +50,72 @@ export default function VotePage() {
   const [voteResults, setVoteResults] = useState<any[]>([]);
   const [participantCount, setParticipantCount] = useState(0);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const fetchVoteResults = useCallback(
-    async (voteData?: VoteType | null) => {
-      const currentVote = voteData || vote;
-      if (!voteId || !currentVote) return;
+  async function fetchVoteResults(voteData?: VoteType | null) {
+    const currentVote = voteData || vote;
+    if (!voteId || !currentVote) return;
 
-      try {
-        const results: any[] = await VoteService.getVoteResults(voteId);
+    try {
+      const results: any[] = await VoteService.getVoteResults(voteId);
 
-        if (currentVote.vote_type === "ranking") {
-          const processedResults = currentVote.options.map((option) => {
-            const optionResponses = results.filter(
-              (r: any) => r.option_id === option.id
-            );
-            const rankings = optionResponses
-              .map((r: any) => r.ranking)
-              .filter((r: any) => r !== null);
-            const avgRanking =
-              rankings.length > 0
-                ? rankings.reduce(
-                    (sum: number, rank: number) => sum + rank,
-                    0
-                  ) / rankings.length
-                : null;
-
-            return {
-              option_id: option.id,
-              option_text: option.text,
-              response_count: optionResponses.length,
-              avg_ranking: avgRanking,
-            };
-          });
-
-          setVoteResults(processedResults);
-        } else if (currentVote.vote_type === "scale") {
-          const scaleValues = results
-            .map((r: any) => r.scale_value)
-            .filter((v: any) => v !== null);
-          const avgScore =
-            scaleValues.length > 0
-              ? scaleValues.reduce((sum: number, val: number) => sum + val, 0) /
-                scaleValues.length
+      if (currentVote.vote_type === "ranking") {
+        const processedResults = currentVote.options.map((option) => {
+          const optionResponses = results.filter(
+            (r: any) => r.option_id === option.id
+          );
+          const rankings = optionResponses
+            .map((r: any) => r.ranking)
+            .filter((r: any) => r !== null);
+          const avgRanking =
+            rankings.length > 0
+              ? rankings.reduce(
+                  (sum: number, rank: number) => sum + rank,
+                  0
+                ) / rankings.length
               : null;
 
-          setVoteResults([
-            {
-              avg_score: avgScore,
-              response_count: scaleValues.length,
-            },
-          ]);
-        } else {
-          const processedResults = currentVote.options.map((option) => {
-            const optionResponses = results.filter(
-              (r: any) => r.option_id === option.id
-            );
+          return {
+            option_id: option.id,
+            option_text: option.text,
+            response_count: optionResponses.length,
+            avg_ranking: avgRanking,
+          };
+        });
 
-            return {
-              option_id: option.id,
-              option_text: option.text,
-              response_count: optionResponses.length,
-            };
-          });
-          setVoteResults(processedResults);
-        }
-      } catch (error) {
-        toast.error("투표 결과를 불러오지 못했습니다.");
+        setVoteResults(processedResults);
+      } else if (currentVote.vote_type === "scale") {
+        const scaleValues = results
+          .map((r: any) => r.scale_value)
+          .filter((v: any) => v !== null);
+        const avgScore =
+          scaleValues.length > 0
+            ? scaleValues.reduce((sum: number, val: number) => sum + val, 0) /
+              scaleValues.length
+            : null;
+
+        setVoteResults([
+          {
+            avg_score: avgScore,
+            response_count: scaleValues.length,
+          },
+        ]);
+      } else {
+        const processedResults = currentVote.options.map((option) => {
+          const optionResponses = results.filter(
+            (r: any) => r.option_id === option.id
+          );
+
+          return {
+            option_id: option.id,
+            option_text: option.text,
+            response_count: optionResponses.length,
+          };
+        });
+        setVoteResults(processedResults);
       }
-    },
-    [voteId, vote]
-  );
+    } catch {
+      toast.error("투표 결과를 불러오지 못했습니다.");
+    }
+  }
 
   useEffect(() => {
     if (vote?.id) {
@@ -138,7 +134,7 @@ export default function VotePage() {
       // 전체 응답 중 내 participant_token에 해당하는 것만 추출
       const allResponses = await VoteService.getVoteResults(voteId);
       const myResponses = allResponses.filter(
-        (r) => r.participant_token === participantToken
+        (r: VoteResponse) => r.participant_token === participantToken
       );
       if (myResponses.length > 0) {
         setHasVoted(true);
@@ -147,10 +143,8 @@ export default function VotePage() {
       } else if (!canVote(voteId)) {
         setHasVoted(true);
       }
-    } catch (error: any) {
-      console.error("투표 조회 실패:", error);
-      toast.error(error.message || "투표를 불러오는데 실패했습니다.");
-    } finally {
+    } catch {}
+    finally {
       setLoading(false);
     }
   }, [voteId, participantToken]);
@@ -169,7 +163,7 @@ export default function VotePage() {
         VoteService.unsubscribeFromVoteUpdates(subscription);
       };
     }
-  }, [voteId, participantToken]);
+  }, [voteId, participantToken, fetchVote]);
 
   const handleVoteSubmit = async (
     responses: Array<{
