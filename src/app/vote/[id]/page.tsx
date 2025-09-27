@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import {
   VoteService,
   canVote,
@@ -67,10 +68,8 @@ export default function VotePage() {
             .filter((r: any) => r !== null);
           const avgRanking =
             rankings.length > 0
-              ? rankings.reduce(
-                  (sum: number, rank: number) => sum + rank,
-                  0
-                ) / rankings.length
+              ? rankings.reduce((sum: number, rank: number) => sum + rank, 0) /
+                rankings.length
               : null;
 
           return {
@@ -143,8 +142,8 @@ export default function VotePage() {
       } else if (!canVote(voteId)) {
         setHasVoted(true);
       }
-    } catch {}
-    finally {
+    } catch {
+    } finally {
       setLoading(false);
     }
   }, [voteId, participantToken]);
@@ -330,12 +329,15 @@ export default function VotePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--stone-100)] pb-16">
+    <div className="min-h-screen bg-[var(--stone-100)]">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <Card className="mb-6">
             <CardHeader className="text-center">
               <CardTitle className="text-2xl">{vote.title}</CardTitle>
+              <div className="text-sm text-gray-500 mt-1">
+                created by {vote.host_name || "unknown"}
+              </div>
               {vote.description && (
                 <CardDescription className="text-base">
                   {vote.description}
@@ -522,6 +524,19 @@ export default function VotePage() {
           </Card>
         </div>
       </div>
+      {/* 하단 고정 푸터 */}
+      <footer className="w-full border-t border-gray-200 py-10">
+        <div className="flex flex-row justify-center items-center gap-6">
+          <Link href="/">
+            <span className="text-xl" style={{ fontFamily: "Gyanko" }}>
+              VoteUP
+            </span>
+          </Link>
+          <span className="text-xs text-gray-500">
+            © VoteUP. All rights reserved.
+          </span>
+        </div>
+      </footer>
     </div>
   );
 }
