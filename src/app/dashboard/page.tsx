@@ -6,18 +6,51 @@ import { useAuthStore, useVoteStore } from "@/store";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { DashboardSidebar, DashboardHeader, VoteList } from "./components";
+import OverviewCards from "./components/overview-cards";
+import OverviewGraph from "./components/overview-graph";
+import OverviewAreaChart from "./components/overview-area-chart";
 import { useIsMobile } from "@/hooks";
 import { Button } from "@/components/ui";
 import { Smartphone, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import type { Vote } from "@/types";
 
+// 최근 7일간 참여 추이 데이터 생성 함수
+function getParticipationTrend(
+  votes: Vote[]
+): { date: string; count: number }[] {
+  const days = 7;
+  const now = new Date();
+  const trend: { date: string; count: number }[] = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(now.getDate() - i);
+    const dateStr = `${d.getMonth() + 1}/${d.getDate()}`;
+    // 각 투표의 created_at이 해당 날짜와 일치하면 참여자 수 합산
+    const count = votes
+      .filter((v) => {
+        if (!v.created_at) return false;
+        const created = new Date(v.created_at);
+        return (
+          created.getFullYear() === d.getFullYear() &&
+          created.getMonth() === d.getMonth() &&
+          created.getDate() === d.getDate()
+        );
+      })
+      .reduce((sum, v) => sum + (v.participant_count || 0), 0);
+    trend.push({ date: dateStr, count });
+  }
+  return trend;
+}
+
 export default function DashboardPage() {
   const { user, userProfile, loading: authLoading } = useAuthStore();
   const { votes, setVotes, loading, setLoading } = useVoteStore();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
+  const [filter, setFilter] = useState<
+    "overview" | "all" | "active" | "completed"
+  >("overview");
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -156,38 +189,68 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--stone-100)]">
-      <div className="flex">
+    <div className="min-h-screen bg-white flex h-screen">
+      {/* 사이드바 고정 (w-50) */}
+      <div className="h-screen w-50 flex-shrink-0 relative">
         <DashboardSidebar
           votes={votes}
           filter={filter}
           onFilterChange={setFilter}
         />
-
-        <div className="flex-1 p-8">
+      </div>
+      {/* 메인 영역: 헤더 고정, 나머지만 스크롤 */}
+      <div className="flex-1 flex flex-col h-screen">
+        <div className="sticky top-0 z-10 w-full">
           <DashboardHeader
             userProfile={userProfile}
             voteCount={getFilteredVotes().length}
             filter={filter}
           />
-
-          <VoteList
-            votes={(() => {
-              switch (filter) {
-                case "active":
-                  return votes.filter((vote) => vote.is_open);
-                case "completed":
-                  return votes.filter((vote) => !vote.is_open);
-                default:
-                  return votes;
-              }
-            })()}
-            loading={loading}
-            filter={filter}
-            onToggleVoteStatus={toggleVoteStatus}
-            onCopyVoteLink={copyVoteLink}
-            onDeleteVote={deleteVote}
-          />
+        </div>
+        <div className="flex-1 overflow-y-auto p-8">
+          {filter === "overview" ? (
+            <>
+              <OverviewCards
+                votes={votes}
+                participantCount={votes.reduce(
+                  (sum, v) => sum + (v.participant_count || 0),
+                  0
+                )}
+                recentVotes={votes.slice(0, 5)}
+                popularVote={votes.reduce(
+                  (max, v) =>
+                    v.participant_count > (max?.participant_count || 0)
+                      ? v
+                      : max,
+                  undefined
+                )}
+              />
+              <div className="mt-8">
+                <h2 className="text-lg font-semibold mb-2">
+                  일주일 간 참여자 수
+                </h2>
+                <OverviewAreaChart data={getParticipationTrend(votes)} />
+              </div>
+            </>
+          ) : (
+            <VoteList
+              votes={(() => {
+                switch (filter) {
+                  case "active":
+                    return votes.filter((vote) => vote.is_open);
+                  case "completed":
+                    return votes.filter((vote) => !vote.is_open);
+                  default:
+                    return votes;
+                }
+              })()}
+              loading={loading}
+              filter={filter}
+              onToggleVoteStatus={toggleVoteStatus}
+              onCopyVoteLink={copyVoteLink}
+              onDeleteVote={deleteVote}
+            />
+          )}
         </div>
       </div>
     </div>
