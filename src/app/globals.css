@@ -1,3 +1,8 @@
+@font-face {
+  font-family: "Gyanko";
+  src: url("/fonts/gyanko-regular.otf") format("opentype");
+  font-display: swap;
+}
 @import "tailwindcss";
 @import "tw-animate-css";
 

@@ -22,7 +22,12 @@ export default function GlobalHeader({ fixed = false }: GlobalHeaderProps) {
           {/* 좌측 로고 및 브랜드명 */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
-              <span className="text-xl font-bold text-gray-900">VoteUp</span>
+              <span
+                className="text-xl text-gray-900"
+                style={{ fontFamily: "Gyanko" }}
+              >
+                VoteUp
+              </span>
             </Link>
           </div>
 

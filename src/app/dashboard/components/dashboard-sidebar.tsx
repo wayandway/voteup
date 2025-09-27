@@ -32,9 +32,9 @@ export default function DashboardSidebarNew({
   return (
     <div className="w-80 bg-white shadow-lg min-h-screen p-6">
       <div className="sticky top-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+        <h2 className="text-xl text-gray-900 mb-6 flex items-center">
           <Link href="/" className="flex items-center">
-            VoteUP
+            <span style={{ fontFamily: "Gyanko" }}>VoteUP</span>
           </Link>
         </h2>
 

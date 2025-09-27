@@ -11,7 +11,12 @@ export default function Footer() {
           {/* 브랜드 섹션 */}
           <div className="md:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
-              <span className="text-xl font-bold text-gray-900">VoteUP</span>
+              <span
+                className="text-xl text-gray-900"
+                style={{ fontFamily: "Gyanko" }}
+              >
+                VoteUP
+              </span>
             </div>
             <p className="text-gray-600 mb-4 max-w-md">
               누구나 쉽게 만드는 실시간 투표 서비스. 스트리밍 이벤트, 세미나,

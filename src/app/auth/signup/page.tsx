@@ -90,7 +90,7 @@ export default function SignupPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center space-x-2">
-            <span className="text-2xl font-bold text-gray-900">VoteUP</span>
+            <span className="text-2xl text-gray-900" style={{ fontFamily: 'Gyanko' }}>VoteUP</span>
           </Link>
         </div>
 
