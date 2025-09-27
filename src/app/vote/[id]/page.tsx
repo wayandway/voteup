@@ -135,21 +135,16 @@ export default function VotePage() {
       setVote(voteData);
       setParticipantCount(voteData.participant_count || 0);
 
-      if (canVote(voteId)) {
-        try {
-          const responses = await VoteService.getParticipantResponse(
-            voteId,
-            participantToken
-          );
-          if (responses.length > 0) {
-            setHasVoted(true);
-            setExistingResponse(responses);
-            markAsVoted(voteId);
-          }
-        } catch (error) {
-          console.error("기존 응답 조회 실패:", error);
-        }
-      } else {
+      // 전체 응답 중 내 participant_token에 해당하는 것만 추출
+      const allResponses = await VoteService.getVoteResults(voteId);
+      const myResponses = allResponses.filter(
+        (r) => r.participant_token === participantToken
+      );
+      if (myResponses.length > 0) {
+        setHasVoted(true);
+        setExistingResponse(myResponses);
+        markAsVoted(voteId);
+      } else if (!canVote(voteId)) {
         setHasVoted(true);
       }
     } catch (error: any) {
@@ -394,6 +389,18 @@ export default function VotePage() {
                 <p className="text-gray-600 mb-6">
                   참여해주셔서 감사합니다. 실시간 결과를 확인해보세요.
                 </p>
+                <div className="mt-6 text-left max-w-md mx-auto">
+                  <div className="font-semibold mb-2 text-gray-800">
+                    내가 제출한 답변
+                  </div>
+                  {existingResponse.length > 0 ? (
+                    <div>{renderVoteComponent()}</div>
+                  ) : (
+                    <div className="text-gray-500 text-sm">
+                      투표 응답을 불러올 수 없습니다.
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           ) : (

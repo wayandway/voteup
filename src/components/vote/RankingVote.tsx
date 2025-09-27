@@ -67,19 +67,24 @@ export default function RankingVote({
 
   return (
     <div className="space-y-6">
-      <div className="p-4 bg-blue-50 rounded-lg">
-        <h4 className="font-medium text-blue-900 mb-2">순위 투표 방법</h4>
-        <ol className="text-sm text-blue-800 space-y-1">
-          <li>1. 선택지를 클릭하여 순위를 매기세요</li>
-          <li>2. 클릭한 순서대로 순위가 정해집니다</li>
-          <li>3. 다시 클릭하면 순위에서 제거됩니다</li>
-        </ol>
-      </div>
+      {/* 투표 완료 시 안내/버튼 숨김, 선택 옵션만 표시 */}
+      {!disabled && (
+        <div className="p-4 bg-blue-50 rounded-lg">
+          <h4 className="font-medium text-blue-900 mb-2">순위 투표 방법</h4>
+          <ol className="text-sm text-blue-800 space-y-1">
+            <li>1. 선택지를 클릭하여 순위를 매기세요</li>
+            <li>2. 클릭한 순서대로 순위가 정해집니다</li>
+            <li>3. 다시 클릭하면 순위에서 제거됩니다</li>
+          </ol>
+        </div>
+      )}
 
       <div className="space-y-3">
-        <h4 className="font-medium text-gray-900">
-          선택지 (클릭하여 순위 매기기)
-        </h4>
+        {!disabled && (
+          <h4 className="font-medium text-gray-900">
+            선택지 (클릭하여 순위 매기기)
+          </h4>
+        )}
         <div className="space-y-2">
           {vote.options.map((option) => {
             const rank = getRankForOption(option.id);
@@ -122,7 +127,7 @@ export default function RankingVote({
                         <p className="font-medium text-gray-900">
                           {option.text}
                         </p>
-                        {isSelected && (
+                        {!disabled && isSelected && (
                           <p className="text-sm text-blue-600">
                             {rank}순위로 선택됨
                           </p>
@@ -137,22 +142,26 @@ export default function RankingVote({
         </div>
       </div>
 
-      <div className="flex justify-center pt-4">
-        <Button
-          onClick={handleSubmit}
-          disabled={rankings.length !== vote.options.length || submitting}
-          className="w-full max-w-md"
-        >
-          {submitting ? (
-            <div className="flex items-center space-x-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              <span>제출 중...</span>
-            </div>
-          ) : (
-            `순위 투표 제출 (${rankings.length}/${vote.options.length}개 순위 지정)`
-          )}
-        </Button>
-      </div>
+      {!disabled && (
+        <div className="flex justify-center pt-4">
+          <Button
+            onClick={handleSubmit}
+            disabled={
+              disabled || rankings.length !== vote.options.length || submitting
+            }
+            className="w-full max-w-md"
+          >
+            {submitting ? (
+              <div className="flex items-center space-x-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <span>제출 중...</span>
+              </div>
+            ) : (
+              `순위 투표 제출 (${rankings.length}/${vote.options.length}개 순위 지정)`
+            )}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
