@@ -24,6 +24,7 @@ export interface Vote {
   scale_max?: number; // 스케일 투표 최대값 (default: 5)
   scale_step?: number; // 스케일 투표 단계 (default: 1)
   participant_count?: number; // 참여자 수 (선택적)
+  host_username?: string;
   options: VoteOption[];
 }
 
@@ -55,6 +56,7 @@ export interface CreateVoteData {
   scale_min?: number;
   scale_max?: number;
   scale_step?: number;
+  host_username?: string;
 }
 
 export interface VoteResult {
