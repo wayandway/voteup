@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@/lib";
+import { supabase } from "@/lib/supabase";
 import {
   Button,
   Card,
@@ -21,7 +21,6 @@ export default function SigninPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,7 +50,12 @@ export default function SigninPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center space-x-2">
-            <span className="text-2xl text-gray-900" style={{ fontFamily: 'Gyanko' }}>VoteUP</span>
+            <span
+              className="text-2xl text-gray-900"
+              style={{ fontFamily: "Gyanko" }}
+            >
+              VoteUP
+            </span>
           </Link>
         </div>
 

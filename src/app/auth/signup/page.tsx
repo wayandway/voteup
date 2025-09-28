@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@/lib";
+import { supabase } from "@/lib/supabase";
 import {
   Button,
   Card,
@@ -21,9 +21,9 @@ export default function SignupPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [profileImage, setProfileImage] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,6 +46,18 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
+      let imageUrl = "";
+      if (profileImage) {
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from("profile-images")
+          .upload(`profile_${Date.now()}`, profileImage);
+        if (!uploadError && uploadData) {
+          imageUrl = supabase.storage
+            .from("profile-images")
+            .getPublicUrl(uploadData.path).data.publicUrl;
+        }
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -60,19 +72,18 @@ export default function SignupPage() {
         toast.error("회원가입 실패: " + error.message);
       } else {
         if (data.user) {
-          const { error: profileError } = await (supabase as any)
-            .from("users")
-            .insert({
+          const { error: profileError } = await supabase.from("users").insert([
+            {
               id: data.user.id,
               email: data.user.email!,
               username: username.trim(),
-            });
-
+              profile_image: imageUrl,
+            },
+          ]);
           if (profileError) {
             console.error("프로필 저장 오류:", profileError);
           }
         }
-
         toast.success(
           "회원가입 성공! 가입한 이메일로 보낸 인증메일을 확인해주세요."
         );
@@ -90,7 +101,12 @@ export default function SignupPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center space-x-2">
-            <span className="text-2xl text-gray-900" style={{ fontFamily: 'Gyanko' }}>VoteUP</span>
+            <span
+              className="text-2xl text-gray-900"
+              style={{ fontFamily: "Gyanko" }}
+            >
+              VoteUP
+            </span>
           </Link>
         </div>
 
@@ -103,6 +119,15 @@ export default function SignupPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSignup} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="profileImage">프로필 이미지 (선택)</Label>
+                <Input
+                  id="profileImage"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setProfileImage(e.target.files?.[0] || null)}
+                />
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="email">이메일</Label>
                 <Input

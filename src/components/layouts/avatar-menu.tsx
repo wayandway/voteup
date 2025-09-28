@@ -2,7 +2,7 @@
 
 import { Settings, LogOut, Vote, User } from "lucide-react";
 import { useAuthStore } from "@/store";
-import { createClient } from "@/lib";
+import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -15,9 +15,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export default function AvatarMenu() {
-  const { user, setUser, setUserProfile } = useAuthStore();
+  const { user, userProfile, setUser, setUserProfile } = useAuthStore();
   const router = useRouter();
-  const supabase = createClient();
 
   const handleLogout = async () => {
     try {
@@ -41,8 +40,18 @@ export default function AvatarMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild className="cursor-pointer">
         <button className="hover:opacity-80 transition-opacity focus:outline-none">
-          <div className="h-8 w-8 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-sm">
-            <User className="h-4 w-4 text-gray-500" />
+          <div className="h-8 w-8 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-sm overflow-hidden">
+            {userProfile?.profile_image ? (
+              <img
+                src={userProfile.profile_image}
+                alt="프로필 이미지"
+                width={32}
+                height={32}
+                className="rounded-full object-cover"
+              />
+            ) : (
+              <User className="h-4 w-4 text-gray-500" />
+            )}
           </div>
         </button>
       </DropdownMenuTrigger>

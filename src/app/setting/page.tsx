@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClient } from "@/lib";
+import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store";
 import {
   Button,
@@ -20,36 +20,56 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 export default function SettingPage() {
-  const {
-    user,
-    userProfile,
-    setUserProfile,
-    loading: authLoading,
-  } = useAuthStore();
+  const { userProfile, setUserProfile, loading: authLoading } = useAuthStore();
   const [username, setUsername] = useState("");
+  const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [removingImage, setRemovingImage] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
 
   useEffect(() => {
     if (authLoading) {
       return;
     }
 
-    if (!user) {
+    if (!userProfile) {
       router.push("/auth/signin");
       return;
     }
+    setUsername(userProfile.username || "");
+  }, [userProfile, authLoading, router]);
 
-    if (userProfile) {
-      setUsername(userProfile.username || "");
+  const handleRemoveImage = async () => {
+    if (!userProfile?.profile_image) return;
+    setRemovingImage(true);
+    try {
+      const imageUrl = userProfile.profile_image;
+      const pathMatch = imageUrl.match(/profile-images\/(.*)$/);
+      if (pathMatch) {
+        const imagePath = pathMatch[1];
+        await supabase.storage.from("profile-images").remove([imagePath]);
+      }
+      const { error } = await supabase
+        .from("users")
+        .update({ profile_image: null })
+        .eq("id", userProfile.id);
+      if (error) {
+        toast.error("이미지 제거 실패: " + error.message);
+      } else {
+        setUserProfile({ ...userProfile, profile_image: undefined });
+        toast.success("프로필 이미지가 제거되었습니다.");
+      }
+    } catch (err) {
+      toast.error("이미지 제거 중 오류가 발생했습니다.");
+    } finally {
+      setRemovingImage(false);
     }
-  }, [user, userProfile, authLoading, router]);
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!user) {
+    if (!userProfile) {
       toast.error("로그인이 필요합니다.");
       return;
     }
@@ -62,12 +82,27 @@ export default function SettingPage() {
     setLoading(true);
 
     try {
-      const { data, error } = await (supabase as any)
+      let imageUrl = userProfile.profile_image || "";
+      if (profileImage) {
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from("profile-images")
+          .upload(`profile_${userProfile.id}_${Date.now()}`, profileImage, {
+            upsert: true,
+          });
+        if (!uploadError && uploadData) {
+          imageUrl = supabase.storage
+            .from("profile-images")
+            .getPublicUrl(uploadData.path).data.publicUrl;
+        }
+      }
+
+      const { data, error } = await supabase
         .from("users")
         .upsert({
-          id: user.id,
-          email: user.email!,
+          id: userProfile.id,
+          email: userProfile.email,
           username: username.trim(),
+          profile_image: imageUrl,
         })
         .select()
         .single();
@@ -75,7 +110,12 @@ export default function SettingPage() {
       if (error) {
         toast.error("프로필 업데이트 실패: " + error.message);
       } else {
-        setUserProfile(data);
+        setUserProfile({
+          ...data,
+          username: data.username ?? undefined,
+          profile_image: data.profile_image ?? undefined,
+          created_at: data.created_at ?? "",
+        });
         toast.success("프로필이 성공적으로 업데이트되었습니다!");
       }
     } catch {
@@ -96,7 +136,7 @@ export default function SettingPage() {
     );
   }
 
-  if (!user) {
+  if (!userProfile) {
     return null;
   }
 
@@ -148,11 +188,40 @@ export default function SettingPage() {
             <CardContent>
               <form onSubmit={handleSave} className="space-y-6">
                 <div className="space-y-2">
+                  <Label htmlFor="profileImage">프로필 이미지</Label>
+                  <Input
+                    id="profileImage"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) =>
+                      setProfileImage(e.target.files?.[0] || null)
+                    }
+                  />
+                  {userProfile?.profile_image && (
+                    <div className="flex flex-col items-start gap-2 mt-2">
+                      <img
+                        src={userProfile.profile_image}
+                        alt="프로필 이미지"
+                        className="w-20 h-20 rounded-full"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleRemoveImage}
+                        disabled={removingImage}
+                      >
+                        {removingImage ? "제거 중..." : "이미지 제거"}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="email">이메일</Label>
                   <Input
                     id="email"
                     type="email"
-                    value={user.email || ""}
+                    value={userProfile.email || ""}
                     disabled
                     className="bg-gray-100"
                   />
