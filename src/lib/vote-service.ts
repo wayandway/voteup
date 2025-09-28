@@ -1,4 +1,4 @@
-import { createClient } from "./supabase";
+import { supabase } from "./supabase";
 import { ImageService } from "./image-service";
 import type {
   Vote,
@@ -6,7 +6,7 @@ import type {
 } from "@/types";
 
 export class VoteService {
-  private static supabase = createClient();
+  private static supabase = supabase;
 
   static async createVote(data: CreateVoteData): Promise<Vote> {
     const supabase = this.supabase;
@@ -23,7 +23,7 @@ export class VoteService {
     const { data: vote, error: voteError } = await (supabase as any)
       .from("votes")
       .insert({
-        host_id: user.id, 
+        host_id: user.id,
         title: data.title,
         description: data.description,
         vote_type: data.vote_type,
@@ -33,6 +33,7 @@ export class VoteService {
         scale_min: data.scale_min,
         scale_max: data.scale_max,
         scale_step: data.scale_step,
+        host_username: data.host_username,
       })
       .select()
       .single();

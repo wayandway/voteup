@@ -1,7 +1,7 @@
-import { createClient } from "./supabase";
+import { supabase } from "./supabase";
 
 export class ImageService {
-  private static supabase = createClient();
+  private static supabase = supabase;
   private static BUCKET_NAME = "vote-images";
 
   static async uploadImage(
