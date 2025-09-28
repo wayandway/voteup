@@ -21,7 +21,7 @@ import {
 } from "@/components/vote";
 
 export default function CreateVotePage() {
-  const { user, loading: authLoading } = useAuthStore();
+  const { userProfile, loading: authLoading } = useAuthStore();
   const router = useRouter();
 
   const [title, setTitle] = useState("");
@@ -44,10 +44,10 @@ export default function CreateVotePage() {
       return;
     }
 
-    if (!user) {
+    if (!userProfile) {
       router.push("/auth/signin");
     }
-  }, [user, authLoading, router]);
+  }, [userProfile, authLoading, router]);
 
   const handleVoteTypeChange = (newType: VoteType) => {
     setVoteType(newType);
@@ -137,7 +137,7 @@ export default function CreateVotePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!user) {
+    if (!userProfile) {
       toast.error("로그인이 필요합니다.");
       return;
     }
@@ -149,12 +149,17 @@ export default function CreateVotePage() {
     setLoading(true);
 
     try {
+      // host_username 추출
+      const hostUsername =
+        userProfile.username || userProfile.email?.split("@")[0] || "unknown";
+
       const voteData: CreateVoteData = {
         title: title.trim(),
         description: description.trim() || undefined,
         vote_type: voteType,
         expires_at: undefined,
         options: [],
+        host_username: hostUsername,
       };
 
       if (voteType !== "scale") {
@@ -207,7 +212,7 @@ export default function CreateVotePage() {
     );
   }
 
-  if (!user) {
+  if (!userProfile) {
     return null;
   }
 

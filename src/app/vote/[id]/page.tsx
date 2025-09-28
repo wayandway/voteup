@@ -16,6 +16,7 @@ import {
   CardTitle,
 } from "@/components/ui";
 import { Vote, Users, Clock, CheckCircle } from "lucide-react";
+import Image from "next/image";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -27,8 +28,11 @@ import {
   BinaryVote,
   ScaleVote,
 } from "@/components/vote";
+import { useAuthStore } from "@/store";
+import { User } from "lucide-react";
 
 export default function VotePage() {
+  const { userProfile } = useAuthStore();
   const params = useParams();
   const voteId = params.id as string;
   const [vote, setVote] = useState<VoteType | null>(null);
@@ -37,7 +41,6 @@ export default function VotePage() {
   const [hasVoted, setHasVoted] = useState(false);
   const [participantToken, setParticipantToken] = useState<string | null>(null);
 
-  // participantToken을 voteId별로 localStorage에 저장 및 재사용
   useEffect(() => {
     if (!voteId) return;
     let token = localStorage.getItem(`participantToken:${voteId}`);
@@ -135,7 +138,6 @@ export default function VotePage() {
       setVote(voteData);
       setParticipantCount(voteData.participant_count || 0);
 
-      // 전체 응답 중 내 participant_token에 해당하는 것만 추출
       const allResponses = await VoteService.getVoteResults(voteId);
       const myResponses = allResponses.filter(
         (r: VoteResponse) => r.participant_token === participantToken
@@ -343,8 +345,24 @@ export default function VotePage() {
           <Card className="mb-6">
             <CardHeader className="text-center">
               <CardTitle className="text-2xl">{vote.title}</CardTitle>
-              <div className="text-sm text-gray-500 mt-1">
-                created by {vote.host_id || "unknown"}
+              <div className="flex items-center justify-center mt-3 gap-2">
+                <span className="text-sm text-gray-500 flex items-center">
+                  <span className="mr-1">created by</span>
+                  <span className="font-medium text-gray-900 flex items-center gap-2">
+                    {vote.host_username || "unknown"}
+                    {userProfile?.profile_image ? (
+                      <img
+                        src={userProfile.profile_image}
+                        alt="프로필 이미지"
+                        width={28}
+                        height={28}
+                        className="rounded-full object-cover border border-gray-200"
+                      />
+                    ) : (
+                      <User className="h-5 w-5 text-gray-400 border border-gray-200 rounded-full p-0.5 bg-white ml-1" />
+                    )}
+                  </span>
+                </span>
               </div>
               {vote.description && (
                 <CardDescription className="text-base">

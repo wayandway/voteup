@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useCallback, useState } from "react";
-import { VoteService, createClient, generateVoteLink } from "@/lib";
+import { VoteService, supabase, generateVoteLink } from "@/lib";
 import { useAuthStore, useVoteStore } from "@/store";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -25,7 +25,6 @@ function getParticipationTrend(
     const d = new Date(now);
     d.setDate(now.getDate() - i);
     const dateStr = `${d.getMonth() + 1}/${d.getDate()}`;
-    // 각 투표의 created_at이 해당 날짜와 일치하면 참여자 수 합산
     const count = votes
       .filter((v) => {
         if (!v.created_at) return false;
@@ -43,7 +42,7 @@ function getParticipationTrend(
 }
 
 export default function DashboardPage() {
-  const { user, userProfile, loading: authLoading } = useAuthStore();
+  const { userProfile, loading: authLoading } = useAuthStore();
   const { votes, setVotes, loading, setLoading } = useVoteStore();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
@@ -57,11 +56,11 @@ export default function DashboardPage() {
   }, []);
 
   const fetchVotes = useCallback(async () => {
-    if (!user) return;
+    if (!userProfile) return;
 
     setLoading(true);
     try {
-      const votesData = await VoteService.getUserVotes(user.id);
+      const votesData = await VoteService.getUserVotes(userProfile.id);
       setVotes(votesData);
     } catch (error: any) {
       toast.error(
@@ -70,21 +69,20 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [setLoading, setVotes, user]);
+  }, [setLoading, setVotes, userProfile]);
 
   useEffect(() => {
     if (authLoading) {
       return;
     }
 
-    if (!user) {
+    if (!userProfile) {
       router.push("/auth/signin");
       return;
     }
 
     fetchVotes();
 
-    const supabase = createClient();
     const subscription = supabase
       .channel("dashboard-responses")
       .on(
@@ -103,7 +101,7 @@ export default function DashboardPage() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [user?.id, authLoading, fetchVotes, router, user]);
+  }, [userProfile?.id, authLoading, fetchVotes, router, userProfile]);
 
   const toggleVoteStatus = async (voteId: string, currentStatus: boolean) => {
     try {
